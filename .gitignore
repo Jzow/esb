@@ -1,0 +1,8 @@
+.git
+.idea
+*.exe
+conf
+vendor
+runtime/logs
+runtime/export
+main

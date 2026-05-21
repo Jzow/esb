@@ -1,0 +1,2081 @@
+definitions:
+  app.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      msg:
+        type: string
+    type: object
+  app.SuccessResponse:
+    properties:
+      code:
+        example: 200
+        type: integer
+      data: {}
+      msg:
+        example: ok
+        type: string
+    type: object
+  gormType.JSONMap:
+    additionalProperties: true
+    type: object
+  v1.AddSatisfactionConfigForm:
+    properties:
+      content:
+        type: string
+      name:
+        maxLength: 50
+        type: string
+      project_id:
+        maxLength: 32
+        type: string
+      score:
+        type: integer
+      tag:
+        type: string
+      tenant_id:
+        default: 10000487779b444bb964985fcba10000
+        maxLength: 32
+        type: string
+    required:
+    - name
+    - tenant_id
+    type: object
+  v1.AddTicketCustomFieldConfigForm:
+    properties:
+      create_user_id:
+        type: string
+      field_json:
+        type: string
+      field_tag:
+        type: string
+      project_id:
+        type: string
+      tenant_id:
+        type: string
+      user_id:
+        type: string
+    type: object
+  v1.AddTicketFieldConfigForm:
+    properties:
+      create_user_id:
+        type: string
+      field_chn_name:
+        type: string
+      field_eng_name:
+        type: string
+      field_group:
+        type: integer
+      field_tag:
+        type: string
+      field_type:
+        type: string
+      options:
+        type: string
+      project_id:
+        type: string
+      sort:
+        type: integer
+      tenant_id:
+        type: string
+    type: object
+  v1.AddTicketOperateForm:
+    properties:
+      admin:
+        maxLength: 1000
+        type: string
+      create_user_id:
+        default: dce4b836dad3423eb3d51c8ad57f9ac4
+        maxLength: 32
+        type: string
+      form_field_json:
+        $ref: '#/definitions/gormType.JSONMap'
+      operate_code:
+        maxLength: 50
+        type: string
+      operate_name:
+        maxLength: 50
+        type: string
+      project_id:
+        maxLength: 32
+        type: string
+      sort:
+        type: integer
+      tenant_id:
+        example: 10000487779b444bb964985fcba10000
+        maxLength: 32
+        type: string
+    required:
+    - create_user_id
+    - operate_code
+    - operate_name
+    - tenant_id
+    type: object
+  v1.AddTicketProductFormData:
+    properties:
+      form_field_json:
+        $ref: '#/definitions/gormType.JSONMap'
+      product_id:
+        default: 98701
+        minimum: 1
+        type: integer
+      project_id:
+        maxLength: 32
+        type: string
+      tenant_id:
+        example: 10000487779b444bb964985fcba10000
+        maxLength: 32
+        type: string
+      type_code:
+        default: problem
+        description: 工单类型(problem、event)
+        maxLength: 50
+        type: string
+    required:
+    - product_id
+    - tenant_id
+    - type_code
+    type: object
+  v1.AddTicketTypeForm:
+    properties:
+      admin:
+        maxLength: 1000
+        type: string
+      comment:
+        maxLength: 1000
+        type: string
+      flow_code:
+        maxLength: 255
+        type: string
+      icon:
+        maxLength: 255
+        type: string
+      project_id:
+        maxLength: 32
+        type: string
+      status:
+        description: 0=未启用 1=启用 2=禁用 3=删除
+        example: 1
+        type: integer
+      tenant_id:
+        example: 10000487779b444bb964985fcba10000
+        maxLength: 32
+        type: string
+      type_code:
+        maxLength: 50
+        type: string
+      type_name:
+        maxLength: 50
+        type: string
+    required:
+    - flow_code
+    - tenant_id
+    - type_code
+    - type_name
+    type: object
+  v1.CreateTicketForm:
+    properties:
+      apply_time:
+        type: string
+      apply_user_id:
+        default: a104c2b52ee611ef965708c0eb4e5df7
+        maxLength: 32
+        type: string
+      channel:
+        maxLength: 50
+        type: string
+      channel_id:
+        maxLength: 255
+        type: string
+      create_user_id:
+        default: a104c2b52ee611ef965708c0eb4e5df7
+        maxLength: 32
+        type: string
+      description:
+        type: string
+      field_json:
+        $ref: '#/definitions/gormType.JSONMap'
+      product_id:
+        default: 98701
+        minimum: 1
+        type: integer
+      product_sub_id:
+        type: integer
+      project_id:
+        maxLength: 32
+        type: string
+      tenant_id:
+        default: 10000487779b444bb964985fcba10000
+        maxLength: 32
+        type: string
+      ticket_type:
+        description: ticket type code, use problem or event value currently
+        enum:
+        - problem
+        - event
+        example: problem
+        maxLength: 50
+        type: string
+    required:
+    - apply_user_id
+    - create_user_id
+    - field_json
+    - product_id
+    - tenant_id
+    - ticket_type
+    type: object
+  v1.EditSatisfactionConfigForm:
+    properties:
+      content:
+        type: string
+      name:
+        maxLength: 50
+        type: string
+      project_id:
+        maxLength: 32
+        type: string
+      score:
+        type: integer
+      tag:
+        type: string
+      tenant_id:
+        default: 10000487779b444bb964985fcba10000
+        maxLength: 32
+        type: string
+    required:
+    - name
+    - tenant_id
+    type: object
+  v1.EditTicketCustomFieldConfigForm:
+    properties:
+      field_json:
+        type: string
+      field_tag:
+        type: string
+      project_id:
+        type: string
+      status:
+        example: 1
+        type: integer
+      tenant_id:
+        type: string
+      user_id:
+        type: string
+    type: object
+  v1.EditTicketFieldConfigForm:
+    properties:
+      field_chn_name:
+        type: string
+      field_eng_name:
+        type: string
+      field_group:
+        type: integer
+      field_tag:
+        type: string
+      field_type:
+        type: string
+      options:
+        type: string
+      project_id:
+        type: string
+      sort:
+        type: integer
+      status:
+        example: 1
+        type: integer
+      tenant_id:
+        type: string
+    type: object
+  v1.EditTicketOperateForm:
+    properties:
+      admin:
+        maxLength: 1000
+        type: string
+      form_field_json:
+        $ref: '#/definitions/gormType.JSONMap'
+      form_id:
+        type: integer
+      operate_code:
+        maxLength: 50
+        type: string
+      operate_name:
+        maxLength: 50
+        type: string
+      opt_user_id:
+        default: dce4b836dad3423eb3d51c8ad57f9ac4
+        maxLength: 32
+        type: string
+      project_id:
+        maxLength: 32
+        type: string
+      sort:
+        type: integer
+      status:
+        default: 1
+        description: 0=未启用 1=启用 2=禁用 3=删除
+        type: integer
+      tenant_id:
+        default: 10000487779b444bb964985fcba10000
+        maxLength: 32
+        type: string
+    required:
+    - operate_code
+    - operate_name
+    - tenant_id
+    type: object
+  v1.EditTicketProductFormData:
+    properties:
+      form_field_json:
+        $ref: '#/definitions/gormType.JSONMap'
+      form_id:
+        type: integer
+      opt_user_id:
+        example: dce4b836dad3423eb3d51c8ad57f9ac4
+        maxLength: 32
+        type: string
+      product_id:
+        default: 98701
+        minimum: 1
+        type: integer
+      project_id:
+        maxLength: 32
+        type: string
+      tenant_id:
+        example: 10000487779b444bb964985fcba10000
+        maxLength: 32
+        type: string
+      type_code:
+        default: problem
+        description: 工单类型(problem、event)
+        maxLength: 50
+        type: string
+    required:
+    - product_id
+    - tenant_id
+    - type_code
+    type: object
+  v1.EditTicketTypeForm:
+    properties:
+      admin:
+        maxLength: 1000
+        type: string
+      comment:
+        maxLength: 1000
+        type: string
+      flow_code:
+        maxLength: 255
+        type: string
+      form_field_json:
+        $ref: '#/definitions/gormType.JSONMap'
+      form_id:
+        type: integer
+      icon:
+        maxLength: 255
+        type: string
+      opt_user_id:
+        example: dce4b836dad3423eb3d51c8ad57f9ac4
+        maxLength: 32
+        type: string
+      project_id:
+        maxLength: 32
+        type: string
+      status:
+        description: 0=未启用 1=启用 2=禁用 3=删除
+        example: 1
+        type: integer
+      tenant_id:
+        example: 10000487779b444bb964985fcba10000
+        maxLength: 32
+        type: string
+      type_code:
+        maxLength: 50
+        type: string
+      type_name:
+        maxLength: 50
+        type: string
+    required:
+    - flow_code
+    - tenant_id
+    - type_code
+    - type_name
+    type: object
+  v1.QuickTicketOperateForm:
+    properties:
+      apply_user_id:
+        example: a104c2b52ee611ef965708c0eb4e5df7
+        maxLength: 32
+        type: string
+      channel:
+        description: 来源，目前固定为seat
+        example: seat
+        maxLength: 50
+        type: string
+      channel_id:
+        description: 来源ID，当为seat时表示会话ID
+        maxLength: 255
+        type: string
+      claim_user_id:
+        example: a104c2b52ee611ef965708c0eb4e5df7
+        maxLength: 32
+        type: string
+      operate_code:
+        enum:
+        - claim
+        - modify
+        - settlement
+        - transfer
+        - agree
+        - disagree
+        - close
+        - lock
+        - unlock
+        - urge
+        - info
+        example: claim
+        type: string
+      product_id:
+        example: 98701
+        type: integer
+      project_id:
+        example: 20004487779b444bb964985fcba20004
+        maxLength: 32
+        type: string
+      tenant_id:
+        example: 10003487779b444bb964985fcba10003
+        maxLength: 32
+        type: string
+      ticket_type:
+        description: ticket type code, use problem or event value currently
+        enum:
+        - problem
+        - event
+        example: problem
+        maxLength: 50
+        type: string
+    required:
+    - apply_user_id
+    - channel
+    - channel_id
+    - tenant_id
+    - ticket_type
+    type: object
+  v1.SatisfactionEvaluateForm:
+    properties:
+      channel:
+        enum:
+        - PC
+        - SmallApp
+        example: PC
+        maxLength: 50
+        type: string
+      opt_user_id:
+        example: 39211a3659fb42efa2442d1d53412d65
+        maxLength: 32
+        type: string
+      project_id:
+        example: 20004487779b444bb964985fcba20004
+        maxLength: 32
+        type: string
+      remark:
+        example: 热情主动的
+        type: string
+      score:
+        example: 5
+        type: integer
+      tag:
+        items:
+          type: string
+        type: array
+      tenant_id:
+        example: 10003487779b444bb964985fcba10003
+        maxLength: 32
+        type: string
+    required:
+    - channel
+    - opt_user_id
+    - project_id
+    - score
+    - tenant_id
+    type: object
+  v1.SearchDoneTicket:
+    properties:
+      apply_user_id:
+        description: 反馈人
+        maxLength: 32
+        type: string
+      claim_user_id:
+        description: 认领人
+        example: a28fe4afc35a49dea2bc4a38f9cf51cc
+        maxLength: 32
+        type: string
+      create_time_range:
+        description: 起始时间,结束时间  (结束时间缺省时，等同于 起始时间,now) 格式支持：日期、时间、时间戳(精确到秒，即10位数)
+        example: "2023-09-01"
+        type: string
+      create_user_id:
+        description: 建单人
+        maxLength: 32
+        type: string
+      operate_code:
+        description: 多个逗号分隔开
+        enum:
+        - claim
+        - close
+        - modify
+        - urge
+        - info
+        - settlement
+        - transfer
+        - lock
+        - unlock
+        - agree
+        - disagree
+        - completed
+        - uncompleted
+        type: string
+      order:
+        example: completed_status
+        type: string
+      product_id:
+        type: integer
+      product_sub_id:
+        type: integer
+      tenant_id:
+        example: 10003487779b444bb964985fcba10003
+        maxLength: 32
+        type: string
+      ticket_id:
+        type: integer
+      ticket_type:
+        description: 工单分类：problem=问题工单 event=事件工单
+        example: problem
+        maxLength: 50
+        type: string
+    required:
+    - claim_user_id
+    - tenant_id
+    type: object
+  v1.SearchTicket:
+    properties:
+      apply_user_id:
+        description: 反馈人
+        example: a104c2b52ee611ef965708c0eb4e5df7
+        maxLength: 32
+        type: string
+      claim_user_id:
+        description: 认领人
+        example: a104c2b52ee611ef965708c0eb4e5df7
+        maxLength: 32
+        type: string
+      create_time_range:
+        description: 起始时间,结束时间  (结束时间缺省时，等同于 起始时间,now) 格式支持：日期、时间、时间戳(精确到秒，即10位数)
+        example: "2023-09-01"
+        type: string
+      create_user_id:
+        description: 建单人
+        example: a104c2b52ee611ef965708c0eb4e5df7
+        maxLength: 32
+        type: string
+      operate_code:
+        description: 多个逗号分隔开
+        enum:
+        - start
+        - claim
+        - close
+        - modify
+        - urge
+        - info
+        - settlement
+        - transfer
+        - lock
+        - unlock
+        - agree
+        - disagree
+        - evaluate
+        - completed
+        - uncompleted
+        type: string
+      opt_user_id:
+        maxLength: 32
+        type: string
+      order:
+        example: completed_status
+        type: string
+      product_id:
+        type: integer
+      product_sub_id:
+        type: integer
+      tenant_id:
+        maxLength: 32
+        type: string
+      ticket_id:
+        type: integer
+      ticket_type:
+        description: 工单分类：problem=问题工单 event=事件工单
+        example: problem
+        maxLength: 50
+        type: string
+    type: object
+  v1.SearchToDoTicket:
+    properties:
+      apply_user_id:
+        description: 反馈人
+        example: a104c2b52ee611ef965708c0eb4e5df7
+        maxLength: 32
+        type: string
+      create_time_range:
+        description: 起始时间,结束时间  (结束时间缺省时，等同于 起始时间,now) 格式支持：日期、时间、时间戳(精确到秒，即10位数)
+        example: "2023-09-01"
+        type: string
+      create_user_id:
+        description: 建单人
+        example: a104c2b52ee611ef965708c0eb4e5df7
+        maxLength: 32
+        type: string
+      operate_code:
+        description: 多个逗号分隔开
+        enum:
+        - start
+        - modify
+        - urge
+        - transfer
+        type: string
+      product_id:
+        type: integer
+      product_sub_id:
+        type: integer
+      ticket_id:
+        type: integer
+      ticket_type:
+        description: 工单分类：problem=问题工单 event=事件工单
+        example: problem
+        maxLength: 50
+        type: string
+    type: object
+  v1.TicketNodeOperateForm:
+    properties:
+      node_code:
+        type: string
+      operate_code:
+        type: string
+      project_id:
+        type: string
+      tenant_id:
+        type: string
+    type: object
+  v1.TicketOperateForm:
+    properties:
+      apply_user_id:
+        default: a104c2b52ee611ef965708c0eb4e5df7
+        maxLength: 32
+        type: string
+      arti_reason:
+        description: 进线原因/人工原因，结单时填写
+        type: integer
+      description:
+        description: 问题描述，非结束状态下可编写
+        type: string
+      field_json:
+        allOf:
+        - $ref: '#/definitions/gormType.JSONMap'
+        description: 扩展参数，如转单示例。转指定坐席：{"NextApprovalUserId":"a104c2b52ee611ef965708c0eb4e5df7"}；转技能组角色：{"SkillGroup":57}；转一级产品：{"ProductId":81001}；转二级产品：{"ProductId":81001,"ProductSubId":81010}
+      operate_code:
+        description: ApplyTime     string           `json:"apply_time"  valid:"Required;MaxSize(32)"
+          validate:"required" maxLength:"32" default:"2006-01-02 15:04:05"`
+        enum:
+        - claim
+        - modify
+        - settlement
+        - transfer
+        - agree
+        - disagree
+        - close
+        - lock
+        - unlock
+        - urge
+        - info
+        example: modify
+        type: string
+      operate_user_id:
+        example: a104c2b52ee611ef965708c0eb4e5df7
+        type: string
+      product_id:
+        description: 一级产品
+        type: integer
+      product_sub_id:
+        description: 二级产品
+        type: integer
+      reason:
+        description: 操作原因，如转单原因
+        type: string
+      solution:
+        description: 解决方案，结单时填写
+        type: string
+      ticket_id:
+        description: 工单ID
+        example: 14813152003833856
+        minimum: 1
+        type: integer
+    required:
+    - apply_user_id
+    - operate_code
+    - operate_user_id
+    - ticket_id
+    type: object
+info:
+  contact: {}
+  description: ticket service
+  license:
+    name: MIT
+    url: http://175.27.214.248/gitlab-instance-80f356dd/ticket/-/blob/main/LICENSE
+  termsOfService: http://175.27.214.248:8888
+  title: ticket API
+  version: "1.0"
+paths:
+  /api/ticket/upload:
+    post:
+      parameters:
+      - description: Image File
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Import image
+      tags:
+      - util
+  /api/ticket/v1/create:
+    post:
+      parameters:
+      - description: 创建工单信息
+        in: body
+        name: params
+        required: true
+        schema:
+          allOf:
+          - $ref: '#/definitions/v1.CreateTicketForm'
+          - properties:
+              field_json:
+                allOf:
+                - $ref: '#/definitions/gormType.JSONMap'
+                - properties:
+                    common:
+                      type: object
+                    product:
+                      type: object
+                    sub_product:
+                      type: object
+                  type: object
+            type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: data=ticket_id when success
+          schema:
+            allOf:
+            - $ref: '#/definitions/app.SuccessResponse'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Create ticket
+      tags:
+      - ticket
+  /api/ticket/v1/customFieldConfig:
+    get:
+      parameters:
+      - description: 租户ID
+        in: query
+        name: tenantId
+        required: true
+        type: string
+      - description: 应用ID
+        in: query
+        name: projectId
+        type: string
+      - description: 字段类型(search:搜索字段 list:列表字段)
+        in: query
+        name: type
+        type: string
+      - description: 用户ID
+        in: query
+        name: userId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get multiple customFieldConfigs
+      tags:
+      - customFieldConfig
+    post:
+      parameters:
+      - description: 添加用户搜索配置
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AddTicketCustomFieldConfigForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Add customFieldConfig
+      tags:
+      - customFieldConfig
+  /api/ticket/v1/customFieldConfig/{id}:
+    delete:
+      parameters:
+      - description: config_id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Delete customFieldConfig
+      tags:
+      - customFieldConfig
+    get:
+      parameters:
+      - description: config_id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get a single customFieldConfig
+      tags:
+      - customFieldConfig
+    put:
+      parameters:
+      - description: config_id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新用户搜索配置
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/v1.EditTicketCustomFieldConfigForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Update customFieldConfig
+      tags:
+      - customFieldConfig
+  /api/ticket/v1/detail/{id}:
+    get:
+      parameters:
+      - default: 14995717898715136
+        description: 工单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: a104c2b52ee611ef965708c0eb4e5df7
+        in: query
+        maxLength: 32
+        name: opt_user_id
+        required: true
+        type: string
+      - default: 10003487779b444bb964985fcba10003
+        in: query
+        maxLength: 32
+        name: tenant_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.SuccessResponse'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get a single ticket
+      tags:
+      - ticket
+  /api/ticket/v1/fieldConfig:
+    get:
+      parameters:
+      - description: 租户ID
+        in: query
+        name: tenantId
+        required: true
+        type: string
+      - description: 应用ID
+        in: query
+        name: projectId
+        type: string
+      - description: 字段类型(search:搜索字段 list:列表字段)
+        in: query
+        name: type
+        type: string
+      - description: 字段英文名称
+        in: query
+        name: fieldCode
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get multiple fieldConfigs
+      tags:
+      - fieldConfig
+    post:
+      parameters:
+      - description: 添加用户搜索配置
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AddTicketFieldConfigForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Add fieldConfig
+      tags:
+      - fieldConfig
+  /api/ticket/v1/fieldConfig/{id}:
+    delete:
+      parameters:
+      - description: config_id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Delete fieldConfig
+      tags:
+      - fieldConfig
+    get:
+      parameters:
+      - description: config_id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get a single fieldConfig
+      tags:
+      - fieldConfig
+    put:
+      parameters:
+      - description: config_id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新用户搜索配置
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/v1.EditTicketFieldConfigForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Update fieldConfig
+      tags:
+      - fieldConfig
+  /api/ticket/v1/getArtiReason:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            allOf:
+            - $ref: '#/definitions/app.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    type: object
+                  type: array
+              type: object
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get arti reason
+      tags:
+      - ticket
+  /api/ticket/v1/history/{id}:
+    get:
+      parameters:
+      - default: 14813152003833856
+        description: 工单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            allOf:
+            - $ref: '#/definitions/app.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    type: object
+                  type: array
+              type: object
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get ticket operation history
+      tags:
+      - ticket
+  /api/ticket/v1/modify:
+    post:
+      parameters:
+      - description: 工单信息
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/v1.TicketOperateForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.SuccessResponse'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Modify ticket
+      tags:
+      - ticket
+  /api/ticket/v1/msg/{id}:
+    get:
+      parameters:
+      - default: 17411521937227776
+        description: ticketId
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get ticket session messages
+      tags:
+      - ticket
+  /api/ticket/v1/nodeOperate:
+    get:
+      parameters:
+      - description: 租户ID
+        in: query
+        name: tenantId
+        required: true
+        type: string
+      - description: 应用ID
+        in: query
+        name: projectId
+        type: string
+      - description: 环节结点码
+        in: query
+        name: nodeCode
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get multiple nodeOperates
+      tags:
+      - nodeOperate
+    post:
+      parameters:
+      - description: 添加工单环节结点操作映射
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/v1.TicketNodeOperateForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Add nodeOperate
+      tags:
+      - nodeOperate
+  /api/ticket/v1/nodeOperate/{id}:
+    delete:
+      parameters:
+      - description: node_operate_id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Delete nodeOperate
+      tags:
+      - nodeOperate
+    get:
+      parameters:
+      - description: node_operate_id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get a single nodeOperate
+      tags:
+      - nodeOperate
+    put:
+      parameters:
+      - description: node_operate_id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新工单环节结点操作映射
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/v1.TicketNodeOperateForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Update nodeOperate
+      tags:
+      - nodeOperate
+  /api/ticket/v1/operate:
+    get:
+      parameters:
+      - description: '"环节码(多个用逗号分隔)" default(claim,close,modify,urge,info)'
+        in: query
+        name: operate_code
+        type: string
+      - in: query
+        name: project_id
+        type: string
+      - default: 10000487779b444bb964985fcba10000
+        in: query
+        maxLength: 32
+        name: tenant_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get multiple operates
+      tags:
+      - operate
+    post:
+      parameters:
+      - description: 添加工单操作
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AddTicketOperateForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Add operate
+      tags:
+      - operate
+  /api/ticket/v1/operate/{id}:
+    delete:
+      parameters:
+      - description: 工单操作ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Delete operate
+      tags:
+      - operate
+    get:
+      parameters:
+      - default: claim
+        description: 操作码 operate_code
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get a single operate
+      tags:
+      - operate
+    put:
+      parameters:
+      - description: 工单操作ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新工单操作(form_id:form_id无值且form_field_json有值会新增表单,form_id有值且form_field_json有值会更新表单,form_id有值且form_field_json无值会删除表单)
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/v1.EditTicketOperateForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Update operate
+      tags:
+      - operate
+  /api/ticket/v1/productForm:
+    get:
+      parameters:
+      - default: 98701
+        in: query
+        minimum: 1
+        name: product_id
+        required: true
+        type: integer
+      - in: query
+        name: project_id
+        type: string
+      - default: 10000487779b444bb964985fcba10000
+        in: query
+        maxLength: 32
+        name: tenant_id
+        required: true
+        type: string
+      - default: problem
+        description: 工单类型(problem、event)
+        in: query
+        maxLength: 50
+        name: type_code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get a single productForm by other field condition
+      tags:
+      - productForm
+    post:
+      parameters:
+      - description: 绑定工单类型产品表单(type_code:problem=问题工单、event=事件工单)
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AddTicketProductFormData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Add productForm
+      tags:
+      - productForm
+  /api/ticket/v1/productForm/{id}:
+    delete:
+      parameters:
+      - description: ticket_type_product_id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Delete productForm
+      tags:
+      - productForm
+    get:
+      parameters:
+      - description: ticket_type_product_id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get a single productForm by ticket_type_product_id
+      tags:
+      - productForm
+    put:
+      parameters:
+      - description: ticket_type_product_id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 保存工单类型产品表单(type_code:problem=问题工单、event=事件工单;form_id:form_id无值且form_field_json有值会新增表单,form_id有值且form_field_json有值会更新表单,form_id有值且form_field_json无值会删除表单)
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/v1.EditTicketProductFormData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Update productForm
+      tags:
+      - productForm
+  /api/ticket/v1/satisfaction/evaluate/{id}:
+    put:
+      parameters:
+      - default: 14734898466209792
+        description: 工单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 满意度评分
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/v1.SatisfactionEvaluateForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: evaluate ticket
+      tags:
+      - ticket
+  /api/ticket/v1/satisfactionConfig:
+    get:
+      parameters:
+      - in: query
+        name: project_id
+        type: string
+      - default: 10000487779b444bb964985fcba10000
+        in: query
+        maxLength: 32
+        name: tenant_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get multiple satisfaction configs
+      tags:
+      - satisfactionConfig
+    post:
+      parameters:
+      - description: 配置信息
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AddSatisfactionConfigForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Add satisfactionConfig
+      tags:
+      - satisfactionConfig
+  /api/ticket/v1/satisfactionConfig/{id}:
+    delete:
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Delete satisfactionConfig
+      tags:
+      - satisfactionConfig
+    get:
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get a single satisfactionConfig
+      tags:
+      - satisfactionConfig
+    put:
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新配置信息
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/v1.EditSatisfactionConfigForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Update satisfactionConfig
+      tags:
+      - satisfactionConfig
+  /api/ticket/v1/search:
+    post:
+      parameters:
+      - default: 1
+        in: query
+        name: page_index
+        type: integer
+      - default: 10
+        in: query
+        name: page_size
+        type: integer
+      - description: 1:导出
+        in: query
+        name: export
+        type: string
+      - description: 工单搜索信息
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/v1.SearchTicket'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            allOf:
+            - $ref: '#/definitions/app.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    type: object
+                  type: array
+              type: object
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Search tickets
+      tags:
+      - ticket
+  /api/ticket/v1/search/done:
+    post:
+      parameters:
+      - default: 1
+        in: query
+        name: page_index
+        type: integer
+      - default: 10
+        in: query
+        name: page_size
+        type: integer
+      - description: 1:导出
+        in: query
+        name: export
+        type: string
+      - description: 我的已办工单搜索信息
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/v1.SearchDoneTicket'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            allOf:
+            - $ref: '#/definitions/app.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    type: object
+                  type: array
+              type: object
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: SearchDone tickets
+      tags:
+      - ticket
+  /api/ticket/v1/search/todo:
+    post:
+      parameters:
+      - default: 1
+        in: query
+        name: page_index
+        type: integer
+      - default: 10
+        in: query
+        name: page_size
+        type: integer
+      - description: 1:导出
+        in: query
+        name: export
+        type: string
+      - description: 我的待办工单搜索信息
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/v1.SearchToDoTicket'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            allOf:
+            - $ref: '#/definitions/app.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    type: object
+                  type: array
+              type: object
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: SearchToDo tickets
+      tags:
+      - ticket
+  /api/ticket/v1/ticketType:
+    get:
+      parameters:
+      - in: query
+        name: project_id
+        type: string
+      - description: 不传查询全部 0=未启用 1=启用 2=禁用 3=删除
+        in: query
+        name: status
+        type: integer
+      - default: 10000487779b444bb964985fcba10000
+        in: query
+        maxLength: 32
+        name: tenant_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get multiple ticketTypes
+      tags:
+      - ticketType
+    post:
+      parameters:
+      - description: 添加工单类型
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AddTicketTypeForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Add ticketType
+      tags:
+      - ticketType
+  /api/ticket/v1/ticketType/{id}:
+    delete:
+      parameters:
+      - description: 工单类型ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Delete ticketType
+      tags:
+      - ticketType
+    get:
+      parameters:
+      - default: problem
+        description: 工单类型TypeCode参数(如：problem=问题工单 event=事件工单)
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: "1"
+        description: 1:同时查询表单设计
+        in: query
+        name: form_flag
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get a single ticketType
+      tags:
+      - ticketType
+    put:
+      parameters:
+      - description: 工单类型ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 保存工单类型(type_code:problem=问题工单、event=事件工单;form_id:form_id无值且form_field_json有值会新增表单,form_id有值且form_field_json有值会更新表单,form_id有值且form_field_json无值会删除表单)
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/v1.EditTicketTypeForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Save ticketType
+      tags:
+      - ticketType
+  /api/ticket/v1/transfer/product:
+    get:
+      parameters:
+      - default: 16501093096833024
+        in: query
+        name: ticket_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get transfer product
+      tags:
+      - transfer
+  /api/ticket/v1/transfer/seat:
+    get:
+      parameters:
+      - default: 16501093096833024
+        in: query
+        name: ticket_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get transfer seats
+      tags:
+      - transfer
+  /api/ticket/v1/transfer/skill_group:
+    get:
+      parameters:
+      - default: 16501093096833024
+        in: query
+        name: ticket_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get transfer skill group
+      tags:
+      - transfer
+  /service/ticket/v1/detail/{id}:
+    get:
+      parameters:
+      - default: 14733615563358208
+        description: 工单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success http status
+          schema:
+            $ref: '#/definitions/app.SuccessResponse'
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Get ticket info
+      tags:
+      - service
+  /service/ticket/v1/operate:
+    post:
+      parameters:
+      - description: 工单操作
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/v1.QuickTicketOperateForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: data=ticket_id when success
+          schema:
+            allOf:
+            - $ref: '#/definitions/app.SuccessResponse'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: failure http status
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Create ticket
+      tags:
+      - service
+swagger: "2.0"
