@@ -48,6 +48,7 @@ type GaiaApi struct {
 	CorpID       string
 	TokenTTL     time.Duration
 	TokenTTLRaw  int `ini:"TokenTTLSeconds"`
+	TokenPrefix  string
 
 	LeaveSubmitPath    string
 	MyApplicationsPath string

@@ -21,6 +21,14 @@ var (
 
 type Client struct{}
 
+func authHeaderValue(token string) string {
+	prefix := strings.TrimSpace(setting.GaiaApiSetting.TokenPrefix)
+	if prefix == "" {
+		return token
+	}
+	return prefix + " " + token
+}
+
 func buildURL(path string) string {
 	if strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://") {
 		return path
@@ -76,7 +84,7 @@ func (c *Client) post(path string, req interface{}) (map[string]interface{}, err
 	if err != nil {
 		return nil, err
 	}
-	headers := map[string]string{"Authorization": "Bearer " + tk}
+	headers := map[string]string{"Authorization": authHeaderValue(tk)}
 	var out map[string]interface{}
 	_, err = util.Post(buildURL(path), req, &out, headers)
 	if err != nil {
@@ -108,7 +116,7 @@ func (c *Client) get(path string, query interface{}) (map[string]interface{}, er
 		api += "?" + values.Encode()
 	}
 	var out map[string]interface{}
-	_, err = util.Get(api, &out, map[string]string{"Authorization": "Bearer " + tk})
+	_, err = util.Get(api, &out, map[string]string{"Authorization": authHeaderValue(tk)})
 	return out, err
 }
 func (c *Client) Get(path string, query interface{}) (map[string]interface{}, error) {
