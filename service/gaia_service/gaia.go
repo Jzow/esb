@@ -58,7 +58,7 @@ func (c *Client) authToken() (string, error) {
 		return cachedToken, nil
 	}
 	values := url.Values{}
-	values.Set("grant_type", "client_credentials")
+	values.Set("grant_type", setting.GaiaApiSetting.GrantType)
 	values.Set("client_secret", setting.GaiaApiSetting.ClientSecret)
 	values.Set("corp_id", setting.GaiaApiSetting.CorpID)
 
@@ -66,6 +66,9 @@ func (c *Client) authToken() (string, error) {
 	authURL := setting.GaiaApiSetting.AuthPath
 	if authURL == "" {
 		authURL = setting.GaiaApiSetting.AuthURL
+	}
+	if strings.TrimSpace(authURL) == "" {
+		return "", fmt.Errorf("gaia auth url is empty")
 	}
 	_, err := util.Post(buildURL(authURL), values.Encode(), &resp, map[string]string{"Content-Type": "application/x-www-form-urlencoded"})
 	if err != nil {

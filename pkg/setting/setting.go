@@ -154,8 +154,8 @@ func Setup() {
 		GaiaApiSetting.AuthPath = GaiaApiSetting.AuthURL
 	}
 
-	if GaiaApiSetting.BaseUrl == "" && GaiaApiSetting.AuthURL != "" {
-		GaiaApiSetting.BaseUrl = GaiaApiSetting.AuthURL
+	if GaiaApiSetting.GrantType == "" {
+		GaiaApiSetting.GrantType = "client_credentials"
 	}
 
 	AppSetting.ImageMaxSize = AppSetting.ImageMaxSize * 1024 * 1024
