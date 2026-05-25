@@ -84,7 +84,7 @@ func (s *ProcessService) getToken() (string, error) {
 }
 
 func (s *ProcessService) doAuthRequest(req *http.Request) (AuthResponse, []byte, error) {
-	util.Log("[GaiaAuth] request method=%s,url=%s", req.Method, req.URL.String())
+	util.Log("[GaiaAuth] request method=%v,url=%v", req.Method, req.URL.String())
 	resp, err := s.client.Do(req)
 	if err != nil {
 		return AuthResponse{}, nil, err
@@ -137,27 +137,46 @@ func (s *ProcessService) Proxy(method, apiURL string, payload map[string]any) ([
 		body = bytes.NewReader(bodyBytes)
 	}
 
-	req, err := http.NewRequest(strings.ToUpper(method), targetURL, body)
-	if err != nil {
-		return nil, err
+	callOnce := func(authHeader string) (int, []byte, error) {
+		req, err := http.NewRequest(strings.ToUpper(method), targetURL, body)
+		if err != nil {
+			return 0, nil, err
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Accept", "*/*")
+		req.Header.Set("Cache-Control", "no-cache")
+		req.Header.Set("Connection", "keep-alive")
+		req.Header.Set("User-Agent", "PostmanRuntime/7.51.1")
+		req.Header.Set("Authorization", authHeader)
+		util.Log("[GaiaProxy] request method=%v,url=%v,auth_mode=%v", strings.ToUpper(method), targetURL, authHeader[:minInt(len(authHeader), 10)])
+		resp, err := s.client.Do(req)
+		if err != nil {
+			return 0, nil, err
+		}
+		defer resp.Body.Close()
+		respBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return 0, nil, err
+		}
+		return resp.StatusCode, respBody, nil
 	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+token)
 
-	util.Log("[GaiaProxy] request method=%s,url=%s", strings.ToUpper(method), targetURL)
-	resp, err := s.client.Do(req)
+	status, respBody, err := callOnce("Bearer " + token)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
+	if status >= 200 && status < 300 {
+		return respBody, nil
 	}
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("gaia api http status=%d, body=%s", resp.StatusCode, compactBody(respBody))
+	// 兼容部分网关/接口仅接受原始 token 头
+	status2, respBody2, err2 := callOnce(token)
+	if err2 == nil && status2 >= 200 && status2 < 300 {
+		return respBody2, nil
 	}
-	return respBody, nil
+	if err2 != nil {
+		return nil, fmt.Errorf("gaia api failed status=%d, body=%s; retry_raw_token_err=%v", status, compactBody(respBody), err2)
+	}
+	return nil, fmt.Errorf("gaia api http status=%d, body=%s; retry_raw_token_status=%d, body=%s", status, compactBody(respBody), status2, compactBody(respBody2))
 }
 
 func compactBody(body []byte) string {
@@ -168,4 +187,11 @@ func compactBody(body []byte) string {
 		return text[:300] + "..."
 	}
 	return text
+}
+
+func minInt(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
