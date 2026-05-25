@@ -8,6 +8,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"net/http"
 
+	v1 "github.com/EDDYCJY/go-gin-example/routers/api/v1"
 	"github.com/gin-gonic/gin"
 
 	_ "github.com/EDDYCJY/go-gin-example/docs"
@@ -34,6 +35,8 @@ func InitRouter() *gin.Engine {
 	apiv1 := r.Group("/api/test/v1")
 	apiv1.Use(auth.Check(), http_log.LogMiddleware())
 	{
+		// 其他内部受保护接口
+
 		//测试
 		/*		apiv1.GET("/test", v1.GetTests)
 				apiv1.GET("/test/:id", v1.GetTest)
@@ -41,6 +44,17 @@ func InitRouter() *gin.Engine {
 				apiv1.PUT("/test/:id", v1.EditTest)
 				apiv1.DELETE("/test/:id", v1.DeleteTest)*/
 
+	}
+
+	processApi := r.Group("/api/test/v1/process")
+	processApi.Use(http_log.LogMiddleware())
+	{
+		processApi.POST("/submit", v1.SubmitProcess)
+		processApi.GET("/my-applications", v1.MyProcesses)
+		processApi.POST("/quota", v1.ProcessQuota)
+		processApi.GET("/types", v1.ProcessTypes)
+		processApi.GET("/hours", v1.ProcessHours)
+		processApi.GET("/exceptions", v1.ProcessExceptions)
 	}
 	return r
 }
