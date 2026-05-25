@@ -60,12 +60,15 @@ func (s *ProcessService) getToken() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", fmt.Errorf("auth http status=%d, body=%s", resp.StatusCode, compactBody(body))
+	}
 	var authResp AuthResponse
 	if err = json.Unmarshal(body, &authResp); err != nil {
-		return "", fmt.Errorf("parse auth response error: %w", err)
+		return "", fmt.Errorf("parse auth response error: status=%d, body=%s", resp.StatusCode, compactBody(body))
 	}
 	if !authResp.Result || authResp.Data == "" {
-		return "", fmt.Errorf("auth failed: %s", string(body))
+		return "", fmt.Errorf("auth failed: status=%d, body=%s", resp.StatusCode, compactBody(body))
 	}
 	s.token = authResp.Data
 	s.expire = time.Now().Add(time.Duration(cfg.TokenTTLSeconds) * time.Second)
@@ -115,4 +118,14 @@ func (s *ProcessService) Proxy(method, apiURL string, payload map[string]any) ([
 	}
 	defer resp.Body.Close()
 	return io.ReadAll(resp.Body)
+}
+
+func compactBody(body []byte) string {
+	text := strings.TrimSpace(string(body))
+	text = strings.ReplaceAll(text, "\n", "")
+	text = strings.ReplaceAll(text, "\r", "")
+	if len(text) > 300 {
+		return text[:300] + "..."
+	}
+	return text
 }
