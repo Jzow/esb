@@ -21,6 +21,20 @@ var (
 
 type Client struct{}
 
+func buildURL(path string) string {
+	if strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://") {
+		return path
+	}
+	base := strings.TrimRight(setting.GaiaApiSetting.BaseUrl, "/")
+	if base == "" {
+		return path
+	}
+	if strings.HasPrefix(path, "/") {
+		return base + path
+	}
+	return base + "/" + path
+}
+
 func (c *Client) authToken() (string, error) {
 	tokenLock.RLock()
 	if cachedToken != "" && time.Now().Before(tokenExpire) {
@@ -41,7 +55,11 @@ func (c *Client) authToken() (string, error) {
 	values.Set("corp_id", setting.GaiaApiSetting.CorpID)
 
 	var resp gaia.OAuthResponse
-	_, err := util.Post(strings.TrimRight(setting.GaiaApiSetting.BaseUrl, "/")+setting.GaiaApiSetting.AuthPath, values.Encode(), &resp, map[string]string{"Content-Type": "application/x-www-form-urlencoded"})
+	authURL := setting.GaiaApiSetting.AuthPath
+	if authURL == "" {
+		authURL = setting.GaiaApiSetting.AuthURL
+	}
+	_, err := util.Post(buildURL(authURL), values.Encode(), &resp, map[string]string{"Content-Type": "application/x-www-form-urlencoded"})
 	if err != nil {
 		return "", err
 	}
@@ -60,7 +78,7 @@ func (c *Client) post(path string, req interface{}) (map[string]interface{}, err
 	}
 	headers := map[string]string{"Authorization": "Bearer " + tk}
 	var out map[string]interface{}
-	_, err = util.Post(strings.TrimRight(setting.GaiaApiSetting.BaseUrl, "/")+path, req, &out, headers)
+	_, err = util.Post(buildURL(path), req, &out, headers)
 	if err != nil {
 		logging.Errorf("gaia post path=%s err=%s", path, err.Error())
 		return nil, err
@@ -85,7 +103,7 @@ func (c *Client) get(path string, query interface{}) (map[string]interface{}, er
 			values.Set(k, fmt.Sprintf("%v", v))
 		}
 	}
-	api := strings.TrimRight(setting.GaiaApiSetting.BaseUrl, "/") + path
+	api := buildURL(path)
 	if values.Encode() != "" {
 		api += "?" + values.Encode()
 	}

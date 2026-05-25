@@ -41,10 +41,13 @@ type App struct {
 
 type GaiaApi struct {
 	BaseUrl      string
+	AuthURL      string
 	AuthPath     string
+	GrantType    string
 	ClientSecret string
 	CorpID       string
 	TokenTTL     time.Duration
+	TokenTTLRaw  int `ini:"TokenTTLSeconds"`
 
 	LeaveSubmitPath    string
 	MyApplicationsPath string
@@ -137,6 +140,22 @@ func Setup() {
 	mapTo("kafka_ticket_canal", TicketCanalKafkaSetting)
 	mapTo("kafka_bpm_ticket_operate", BpmTicketOperateKafkaSetting)
 	mapTo("gaia_api", GaiaApiSetting)
+	// backward compatibility: allow legacy section name [gaia-openapi]
+	if GaiaApiSetting.BaseUrl == "" && GaiaApiSetting.AuthPath == "" && GaiaApiSetting.AuthURL == "" {
+		mapTo("gaia-openapi", GaiaApiSetting)
+	}
+
+	if GaiaApiSetting.TokenTTL <= 0 && GaiaApiSetting.TokenTTLRaw > 0 {
+		GaiaApiSetting.TokenTTL = time.Duration(GaiaApiSetting.TokenTTLRaw)
+	}
+
+	if GaiaApiSetting.AuthPath == "" && GaiaApiSetting.AuthURL != "" {
+		GaiaApiSetting.AuthPath = GaiaApiSetting.AuthURL
+	}
+
+	if GaiaApiSetting.BaseUrl == "" && GaiaApiSetting.AuthURL != "" {
+		GaiaApiSetting.BaseUrl = GaiaApiSetting.AuthURL
+	}
 
 	AppSetting.ImageMaxSize = AppSetting.ImageMaxSize * 1024 * 1024
 	ServerSetting.ReadTimeout = ServerSetting.ReadTimeout * time.Second

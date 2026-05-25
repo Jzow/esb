@@ -52,5 +52,17 @@ func InitRouter() *gin.Engine {
 			gaia.GET("/leave/exceptions", v1.ExceptionList)
 		}
 	}
+
+	// backward compatibility: expose gaia routes under /api/gaia/v1 too.
+	gaiaV1 := r.Group("/api/gaia/v1")
+	gaiaV1.Use(auth.Check(), http_log.LogMiddleware())
+	{
+		gaiaV1.POST("/leave/submit", v1.LeaveSubmit)
+		gaiaV1.GET("/leave/my-applications", v1.MyApplications)
+		gaiaV1.POST("/leave/quota", v1.LeaveQuota)
+		gaiaV1.GET("/leave/types", v1.LeaveTypes)
+		gaiaV1.POST("/leave/hours", v1.LeaveHours)
+		gaiaV1.GET("/leave/exceptions", v1.ExceptionList)
+	}
 	return r
 }
