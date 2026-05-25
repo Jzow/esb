@@ -3,6 +3,7 @@ package setting
 import (
 	"log"
 	"net"
+	"os"
 	"strings"
 	"time"
 
@@ -35,7 +36,25 @@ type App struct {
 	BpmApiHost        string
 	RobotApiHost      string
 	HomeHost          string
+	ConfigEnv         string
 }
+
+type GaiaApi struct {
+	BaseUrl      string
+	AuthPath     string
+	ClientSecret string
+	CorpID       string
+	TokenTTL     time.Duration
+
+	LeaveSubmitPath    string
+	MyApplicationsPath string
+	LeaveQuotaPath     string
+	LeaveTypesPath     string
+	LeaveHoursPath     string
+	ExceptionListPath  string
+}
+
+var GaiaApiSetting = &GaiaApi{}
 
 var AppSetting = &App{}
 
@@ -96,9 +115,13 @@ var cfg *ini.File
 // Setup initialize the configuration instance
 func Setup() {
 	var err error
-	cfg, err = ini.LoadSources(ini.LoadOptions{IgnoreInlineComment: true}, "conf/app.ini")
+	configFile := "conf/app.ini"
+	if env := strings.TrimSpace(os.Getenv("ESB_CONFIG_FILE")); env != "" {
+		configFile = env
+	}
+	cfg, err = ini.LoadSources(ini.LoadOptions{IgnoreInlineComment: true}, configFile)
 	if err != nil {
-		log.Fatalf("setting.Setup, fail to parse 'conf/app.ini': %v", err)
+		log.Fatalf("setting.Setup, fail to parse '%s': %v", configFile, err)
 	}
 
 	mapTo("app", AppSetting)
@@ -110,11 +133,16 @@ func Setup() {
 	mapTo("kafka", KafkaCommonSetting)
 	mapTo("kafka_ticket_canal", TicketCanalKafkaSetting)
 	mapTo("kafka_bpm_ticket_operate", BpmTicketOperateKafkaSetting)
+	mapTo("gaia_api", GaiaApiSetting)
 
 	AppSetting.ImageMaxSize = AppSetting.ImageMaxSize * 1024 * 1024
 	ServerSetting.ReadTimeout = ServerSetting.ReadTimeout * time.Second
 	ServerSetting.WriteTimeout = ServerSetting.WriteTimeout * time.Second
 	RedisSetting.IdleTimeout = RedisSetting.IdleTimeout * time.Second
+	if GaiaApiSetting.TokenTTL <= 0 {
+		GaiaApiSetting.TokenTTL = 3600
+	}
+	GaiaApiSetting.TokenTTL = GaiaApiSetting.TokenTTL * time.Second
 }
 
 // mapTo map section

@@ -14,6 +14,7 @@ import (
 	"github.com/EDDYCJY/go-gin-example/pkg/export"
 	"github.com/EDDYCJY/go-gin-example/pkg/qrcode"
 	"github.com/EDDYCJY/go-gin-example/pkg/upload"
+	v1 "github.com/EDDYCJY/go-gin-example/routers/api/v1"
 )
 
 // InitRouter initialize routing information
@@ -41,6 +42,15 @@ func InitRouter() *gin.Engine {
 				apiv1.PUT("/test/:id", v1.EditTest)
 				apiv1.DELETE("/test/:id", v1.DeleteTest)*/
 
+		gaia := apiv1.Group("/gaia")
+		{
+			gaia.POST("/leave/submit", v1.LeaveSubmit)
+			gaia.GET("/leave/my-applications", v1.MyApplications)
+			gaia.POST("/leave/quota", v1.LeaveQuota)
+			gaia.GET("/leave/types", v1.LeaveTypes)
+			gaia.POST("/leave/hours", v1.LeaveHours)
+			gaia.GET("/leave/exceptions", v1.ExceptionList)
+		}
 	}
 	return r
 }
