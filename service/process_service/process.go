@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/EDDYCJY/go-gin-example/pkg/setting"
+	"github.com/EDDYCJY/go-gin-example/pkg/util"
 )
 
 type AuthResponse struct {
@@ -51,6 +52,7 @@ func (s *ProcessService) getToken() (string, error) {
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
+	util.Log("[GaiaAuth] request url=%s, grant_type=%s, corp_id=%s", req.URL.String(), cfg.GrantType, cfg.CorpID)
 	resp, err := s.client.Do(req)
 	if err != nil {
 		return "", err
@@ -61,7 +63,7 @@ func (s *ProcessService) getToken() (string, error) {
 		return "", err
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return "", fmt.Errorf("auth http status=%d, body=%s", resp.StatusCode, compactBody(body))
+		return "", fmt.Errorf("auth http status=%d, body=%s (可能被Gaia网关/WAF拦截)", resp.StatusCode, compactBody(body))
 	}
 	var authResp AuthResponse
 	if err = json.Unmarshal(body, &authResp); err != nil {
@@ -112,12 +114,20 @@ func (s *ProcessService) Proxy(method, apiURL string, payload map[string]any) ([
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+token)
 
+	util.Log("[GaiaProxy] request method=%s,url=%s", strings.ToUpper(method), targetURL)
 	resp, err := s.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	return io.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("gaia api http status=%d, body=%s", resp.StatusCode, compactBody(respBody))
+	}
+	return respBody, nil
 }
 
 func compactBody(body []byte) string {
