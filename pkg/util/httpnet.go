@@ -12,6 +12,14 @@ import (
 	"time"
 )
 
+func trimBodyForErr(body []byte) string {
+	s := strings.TrimSpace(string(body))
+	if len(s) > 256 {
+		return s[:256]
+	}
+	return s
+}
+
 func validBody(param interface{}) bool {
 	if param == nil {
 		return true
@@ -121,10 +129,13 @@ func Request(method, url string, body interface{}, model interface{}, headers ma
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("read response content error,%s", err.Error()))
 	}
+	if res.StatusCode < 200 || res.StatusCode >= 300 {
+		return nil, errors.New(fmt.Sprintf("http status=%d, body=%s", res.StatusCode, trimBodyForErr(resBytes)))
+	}
 	if model != nil {
 		err = json.Unmarshal(resBytes, model)
 		if err != nil {
-			return nil, errors.New(fmt.Sprintf("json.Unmarshal response error,%s", err.Error()))
+			return nil, errors.New(fmt.Sprintf("json.Unmarshal response error,%s, body=%s", err.Error(), trimBodyForErr(resBytes)))
 		}
 	}
 	return resBytes, nil
