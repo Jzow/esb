@@ -41,40 +41,70 @@ func (s *ProcessService) getToken() (string, error) {
 		return s.token, nil
 	}
 	cfg := setting.GaiaOpenAPISetting
+
+	// 方案1：按文档/示例使用 form-urlencoded body
 	form := url.Values{}
 	form.Set("grant_type", cfg.GrantType)
 	form.Set("client_secret", cfg.ClientSecret)
 	form.Set("corp_id", cfg.CorpID)
-
-	req, err := http.NewRequest(http.MethodPost, strings.TrimRight(cfg.AuthURL, "/"), strings.NewReader(form.Encode()))
+	bodyReq, err := http.NewRequest(http.MethodPost, strings.TrimRight(cfg.AuthURL, "/"), strings.NewReader(form.Encode()))
 	if err != nil {
 		return "", err
 	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	bodyReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	bodyReq.Header.Set("User-Agent", "Mozilla/5.0 ESB/1.0")
+	bodyReq.Header.Set("Accept", "application/json")
+	bodyResp, bodyBytes, bodyErr := s.doAuthRequest(bodyReq)
+	if bodyErr == nil {
+		s.token = bodyResp.Data
+		s.expire = time.Now().Add(time.Duration(cfg.TokenTTLSeconds) * time.Second)
+		return s.token, nil
+	}
 
-	util.Log("[GaiaAuth] request url=%s, grant_type=%s, corp_id=%s", req.URL.String(), cfg.GrantType, cfg.CorpID)
-	resp, err := s.client.Do(req)
+	// 方案2：兼容你在 Postman 成功的 query-string 方式
+	query := url.Values{}
+	query.Set("grant_type", cfg.GrantType)
+	query.Set("client_secret", cfg.ClientSecret)
+	query.Set("corp_id", cfg.CorpID)
+	authURL := strings.TrimRight(cfg.AuthURL, "/") + "?" + query.Encode()
+	queryReq, err := http.NewRequest(http.MethodPost, authURL, nil)
 	if err != nil {
 		return "", err
+	}
+	queryReq.Header.Set("User-Agent", "Mozilla/5.0 ESB/1.0")
+	queryReq.Header.Set("Accept", "application/json")
+	queryResp, _, queryErr := s.doAuthRequest(queryReq)
+	if queryErr == nil {
+		s.token = queryResp.Data
+		s.expire = time.Now().Add(time.Duration(cfg.TokenTTLSeconds) * time.Second)
+		return s.token, nil
+	}
+
+	return "", fmt.Errorf("auth failed with both body and query modes; body_mode_err=%v; body_mode_resp=%s; query_mode_err=%v", bodyErr, compactBody(bodyBytes), queryErr)
+}
+
+func (s *ProcessService) doAuthRequest(req *http.Request) (AuthResponse, []byte, error) {
+	util.Log("[GaiaAuth] request method=%s,url=%s", req.Method, req.URL.String())
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return AuthResponse{}, nil, err
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return AuthResponse{}, nil, err
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return "", fmt.Errorf("auth http status=%d, body=%s (可能被Gaia网关/WAF拦截)", resp.StatusCode, compactBody(body))
+		return AuthResponse{}, body, fmt.Errorf("auth http status=%d, body=%s (可能被Gaia网关/WAF拦截)", resp.StatusCode, compactBody(body))
 	}
 	var authResp AuthResponse
 	if err = json.Unmarshal(body, &authResp); err != nil {
-		return "", fmt.Errorf("parse auth response error: status=%d, body=%s", resp.StatusCode, compactBody(body))
+		return AuthResponse{}, body, fmt.Errorf("parse auth response error: status=%d, body=%s", resp.StatusCode, compactBody(body))
 	}
 	if !authResp.Result || authResp.Data == "" {
-		return "", fmt.Errorf("auth failed: status=%d, body=%s", resp.StatusCode, compactBody(body))
+		return AuthResponse{}, body, fmt.Errorf("auth failed: status=%d, body=%s", resp.StatusCode, compactBody(body))
 	}
-	s.token = authResp.Data
-	s.expire = time.Now().Add(time.Duration(cfg.TokenTTLSeconds) * time.Second)
-	return s.token, nil
+	return authResp, body, nil
 }
 
 func (s *ProcessService) Proxy(method, apiURL string, payload map[string]any) ([]byte, error) {
