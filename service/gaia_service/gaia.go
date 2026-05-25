@@ -100,3 +100,8 @@ func (c *Client) Get(path string, query interface{}) (map[string]interface{}, er
 func (c *Client) PostLeaveSubmit(req gaia.LeaveSubmitRequest) (map[string]interface{}, error) {
 	return c.post(setting.GaiaApiSetting.LeaveSubmitPath, req)
 }
+
+// LeaveSubmit keeps compatibility with older call sites.
+func (c *Client) LeaveSubmit(req gaia.LeaveSubmitRequest) (map[string]interface{}, error) {
+	return c.PostLeaveSubmit(req)
+}

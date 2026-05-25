@@ -56,6 +56,9 @@ type GaiaApi struct {
 
 var GaiaApiSetting = &GaiaApi{}
 
+// GaiaOpenAPISetting is a backward-compatible alias for previous naming.
+var GaiaOpenAPISetting = GaiaApiSetting
+
 var AppSetting = &App{}
 
 type Server struct {
