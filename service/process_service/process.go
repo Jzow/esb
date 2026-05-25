@@ -118,6 +118,7 @@ func (s *ProcessService) Proxy(method, apiURL string, payload map[string]any) ([
 	if !strings.HasPrefix(targetURL, "http://") && !strings.HasPrefix(targetURL, "https://") {
 		targetURL = strings.TrimRight(setting.GaiaOpenAPISetting.BaseURL, "/") + "/" + strings.TrimLeft(apiURL, "/")
 	}
+	targetURL = strings.ReplaceAll(targetURL, "{tenant}", setting.GaiaOpenAPISetting.CorpID)
 
 	var body io.Reader
 	if strings.EqualFold(method, http.MethodGet) {
@@ -171,15 +172,7 @@ func (s *ProcessService) Proxy(method, apiURL string, payload map[string]any) ([
 	if status >= 200 && status < 300 {
 		return respBody, nil
 	}
-	// 兼容部分网关/接口仅接受原始 token 头
-	status2, respBody2, err2 := callOnce(token)
-	if err2 == nil && status2 >= 200 && status2 < 300 {
-		return respBody2, nil
-	}
-	if err2 != nil {
-		return nil, fmt.Errorf("gaia api failed status=%d, body=%s; retry_raw_token_err=%v", status, compactBody(respBody), err2)
-	}
-	return nil, fmt.Errorf("gaia api http status=%d, body=%s; retry_raw_token_status=%d, body=%s", status, compactBody(respBody), status2, compactBody(respBody2))
+	return nil, fmt.Errorf("gaia api http status=%d, body=%s", status, compactBody(respBody))
 }
 
 func compactBody(body []byte) string {

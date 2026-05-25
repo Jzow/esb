@@ -64,7 +64,7 @@ func ProcessTypes(c *gin.Context) {
 	proxyProcessAPI(c, http.MethodGet, setting.GaiaOpenAPISetting.LeaveTypesPath)
 }
 func ProcessHours(c *gin.Context) {
-	proxyProcessAPI(c, http.MethodPost, setting.GaiaOpenAPISetting.LeaveHoursPath)
+	proxyProcessAPI(c, http.MethodGet, setting.GaiaOpenAPISetting.LeaveHoursPath)
 }
 func ProcessExceptions(c *gin.Context) {
 	proxyProcessAPI(c, http.MethodGet, setting.GaiaOpenAPISetting.ExceptionListPath)

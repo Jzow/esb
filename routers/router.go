@@ -53,7 +53,7 @@ func InitRouter() *gin.Engine {
 		processApi.GET("/my-applications", v1.MyProcesses)
 		processApi.POST("/quota", v1.ProcessQuota)
 		processApi.GET("/types", v1.ProcessTypes)
-		processApi.POST("/hours", v1.ProcessHours)
+		processApi.GET("/hours", v1.ProcessHours)
 		processApi.GET("/exceptions", v1.ProcessExceptions)
 	}
 	return r
