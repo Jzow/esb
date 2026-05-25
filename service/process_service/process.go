@@ -57,6 +57,7 @@ func (s *ProcessService) getToken() (string, error) {
 	bodyResp, bodyBytes, bodyErr := s.doAuthRequest(bodyReq)
 	if bodyErr == nil {
 		s.token = bodyResp.Data
+		util.Log("[GaiaAuth] token acquired by body mode, token=%v, ttl=%v", maskToken(s.token), cfg.TokenTTLSeconds)
 		s.expire = time.Now().Add(time.Duration(cfg.TokenTTLSeconds) * time.Second)
 		return s.token, nil
 	}
@@ -76,6 +77,7 @@ func (s *ProcessService) getToken() (string, error) {
 	queryResp, _, queryErr := s.doAuthRequest(queryReq)
 	if queryErr == nil {
 		s.token = queryResp.Data
+		util.Log("[GaiaAuth] token acquired by query mode, token=%v, ttl=%v", maskToken(s.token), cfg.TokenTTLSeconds)
 		s.expire = time.Now().Add(time.Duration(cfg.TokenTTLSeconds) * time.Second)
 		return s.token, nil
 	}
@@ -148,7 +150,7 @@ func (s *ProcessService) Proxy(method, apiURL string, payload map[string]any) ([
 		req.Header.Set("Connection", "keep-alive")
 		req.Header.Set("User-Agent", "PostmanRuntime/7.51.1")
 		req.Header.Set("Authorization", authHeader)
-		util.Log("[GaiaProxy] request method=%v,url=%v,auth_mode=%v", strings.ToUpper(method), targetURL, authHeader[:minInt(len(authHeader), 10)])
+		util.Log("[GaiaProxy] request method=%v,url=%v,auth_mode=%v,headers=%v", strings.ToUpper(method), targetURL, authHeader[:minInt(len(authHeader), 10)], dumpHeaders(req.Header))
 		resp, err := s.client.Do(req)
 		if err != nil {
 			return 0, nil, err
@@ -158,6 +160,7 @@ func (s *ProcessService) Proxy(method, apiURL string, payload map[string]any) ([
 		if err != nil {
 			return 0, nil, err
 		}
+		util.Log("[GaiaProxy] response status=%v, body=%v", resp.StatusCode, compactBody(respBody))
 		return resp.StatusCode, respBody, nil
 	}
 
@@ -194,4 +197,27 @@ func minInt(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func maskToken(token string) string {
+	if len(token) <= 16 {
+		return token
+	}
+	return token[:8] + "..." + token[len(token)-8:]
+}
+
+func dumpHeaders(h http.Header) string {
+	m := map[string]string{}
+	for k, v := range h {
+		if len(v) == 0 {
+			continue
+		}
+		if strings.EqualFold(k, "Authorization") {
+			m[k] = maskToken(v[0])
+		} else {
+			m[k] = v[0]
+		}
+	}
+	b, _ := json.Marshal(m)
+	return string(b)
 }
