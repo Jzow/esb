@@ -134,6 +134,22 @@ func Setup() {
 	mapTo("kafka_bpm_ticket_operate", BpmTicketOperateKafkaSetting)
 	mapTo("gaia-openapi", GaiaOpenAPISetting)
 
+	if AppSetting.RuntimeRootPath == "" {
+		AppSetting.RuntimeRootPath = "runtime/"
+	}
+	if AppSetting.LogSavePath == "" {
+		AppSetting.LogSavePath = "logs/"
+	}
+	if AppSetting.LogSaveName == "" {
+		AppSetting.LogSaveName = "log"
+	}
+	if AppSetting.LogFileExt == "" {
+		AppSetting.LogFileExt = "log"
+	}
+	if AppSetting.TimeFormat == "" {
+		AppSetting.TimeFormat = "20060102"
+	}
+
 	if GaiaOpenAPISetting.GrantType == "" {
 		GaiaOpenAPISetting.GrantType = "client_credentials"
 	}
