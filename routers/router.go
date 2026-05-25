@@ -35,12 +35,8 @@ func InitRouter() *gin.Engine {
 	apiv1 := r.Group("/api/test/v1")
 	apiv1.Use(auth.Check(), http_log.LogMiddleware())
 	{
-		apiv1.POST("/process/submit", v1.SubmitProcess)
-		apiv1.POST("/process/my-applications", v1.MyProcesses)
-		apiv1.POST("/process/quota", v1.ProcessQuota)
-		apiv1.POST("/process/types", v1.ProcessTypes)
-		apiv1.POST("/process/hours", v1.ProcessHours)
-		apiv1.POST("/process/exceptions", v1.ProcessExceptions)
+		// 其他内部受保护接口
+
 		//测试
 		/*		apiv1.GET("/test", v1.GetTests)
 				apiv1.GET("/test/:id", v1.GetTest)
@@ -48,6 +44,17 @@ func InitRouter() *gin.Engine {
 				apiv1.PUT("/test/:id", v1.EditTest)
 				apiv1.DELETE("/test/:id", v1.DeleteTest)*/
 
+	}
+
+	processApi := r.Group("/api/test/v1/process")
+	processApi.Use(http_log.LogMiddleware())
+	{
+		processApi.POST("/submit", v1.SubmitProcess)
+		processApi.GET("/my-applications", v1.MyProcesses)
+		processApi.POST("/quota", v1.ProcessQuota)
+		processApi.GET("/types", v1.ProcessTypes)
+		processApi.POST("/hours", v1.ProcessHours)
+		processApi.GET("/exceptions", v1.ProcessExceptions)
 	}
 	return r
 }

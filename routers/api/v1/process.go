@@ -12,18 +12,32 @@ import (
 )
 
 type ProxyReq struct {
-	Payload map[string]any `json:"payload" binding:"required"`
+	Payload map[string]any `json:"payload"`
 }
 
-func proxyProcessAPI(c *gin.Context, apiURL string) {
-	var req ProxyReq
+func proxyProcessAPI(c *gin.Context, method, apiURL string) {
 	appG := app.Gin{C: c}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		appG.Response(http.StatusBadRequest, e.INVALID_PARAMS, nil, err.Error())
-		return
+	payload := map[string]any{}
+
+	if method == http.MethodGet {
+		for k, vals := range c.Request.URL.Query() {
+			if len(vals) > 0 {
+				payload[k] = vals[0]
+			}
+		}
+	} else {
+		var req ProxyReq
+		if err := c.ShouldBindJSON(&req); err != nil {
+			appG.Response(http.StatusBadRequest, e.INVALID_PARAMS, nil, err.Error())
+			return
+		}
+		payload = req.Payload
+		if payload == nil {
+			payload = map[string]any{}
+		}
 	}
 
-	resp, err := process_service.Default().Proxy(apiURL, req.Payload)
+	resp, err := process_service.Default().Proxy(method, apiURL, payload)
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, e.ERROR, nil, err.Error())
 		return
@@ -37,11 +51,21 @@ func proxyProcessAPI(c *gin.Context, apiURL string) {
 	appG.Response(http.StatusOK, e.SUCCESS, out)
 }
 
-func SubmitProcess(c *gin.Context) { proxyProcessAPI(c, setting.GaiaOpenAPISetting.SubmitLeavePath) }
-func MyProcesses(c *gin.Context)   { proxyProcessAPI(c, setting.GaiaOpenAPISetting.MyApplicationsPath) }
-func ProcessQuota(c *gin.Context)  { proxyProcessAPI(c, setting.GaiaOpenAPISetting.LeaveQuotaPath) }
-func ProcessTypes(c *gin.Context)  { proxyProcessAPI(c, setting.GaiaOpenAPISetting.LeaveTypesPath) }
-func ProcessHours(c *gin.Context)  { proxyProcessAPI(c, setting.GaiaOpenAPISetting.LeaveHoursPath) }
+func SubmitProcess(c *gin.Context) {
+	proxyProcessAPI(c, http.MethodPost, setting.GaiaOpenAPISetting.SubmitLeavePath)
+}
+func MyProcesses(c *gin.Context) {
+	proxyProcessAPI(c, http.MethodGet, setting.GaiaOpenAPISetting.MyApplicationsPath)
+}
+func ProcessQuota(c *gin.Context) {
+	proxyProcessAPI(c, http.MethodPost, setting.GaiaOpenAPISetting.LeaveQuotaPath)
+}
+func ProcessTypes(c *gin.Context) {
+	proxyProcessAPI(c, http.MethodGet, setting.GaiaOpenAPISetting.LeaveTypesPath)
+}
+func ProcessHours(c *gin.Context) {
+	proxyProcessAPI(c, http.MethodPost, setting.GaiaOpenAPISetting.LeaveHoursPath)
+}
 func ProcessExceptions(c *gin.Context) {
-	proxyProcessAPI(c, setting.GaiaOpenAPISetting.ExceptionListPath)
+	proxyProcessAPI(c, http.MethodGet, setting.GaiaOpenAPISetting.ExceptionListPath)
 }

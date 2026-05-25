@@ -72,12 +72,8 @@ func (s *ProcessService) getToken() (string, error) {
 	return s.token, nil
 }
 
-func (s *ProcessService) Proxy(apiURL string, payload any) ([]byte, error) {
+func (s *ProcessService) Proxy(method, apiURL string, payload map[string]any) ([]byte, error) {
 	token, err := s.getToken()
-	if err != nil {
-		return nil, err
-	}
-	bodyBytes, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +81,28 @@ func (s *ProcessService) Proxy(apiURL string, payload any) ([]byte, error) {
 	if !strings.HasPrefix(targetURL, "http://") && !strings.HasPrefix(targetURL, "https://") {
 		targetURL = strings.TrimRight(setting.GaiaOpenAPISetting.BaseURL, "/") + "/" + strings.TrimLeft(apiURL, "/")
 	}
-	req, err := http.NewRequest(http.MethodPost, targetURL, bytes.NewReader(bodyBytes))
+
+	var body io.Reader
+	if strings.EqualFold(method, http.MethodGet) {
+		u, err := url.Parse(targetURL)
+		if err != nil {
+			return nil, err
+		}
+		q := u.Query()
+		for k, v := range payload {
+			q.Set(k, fmt.Sprintf("%v", v))
+		}
+		u.RawQuery = q.Encode()
+		targetURL = u.String()
+	} else {
+		bodyBytes, err := json.Marshal(payload)
+		if err != nil {
+			return nil, err
+		}
+		body = bytes.NewReader(bodyBytes)
+	}
+
+	req, err := http.NewRequest(strings.ToUpper(method), targetURL, body)
 	if err != nil {
 		return nil, err
 	}
