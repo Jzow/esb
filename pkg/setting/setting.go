@@ -3,6 +3,7 @@ package setting
 import (
 	"log"
 	"net"
+	"os"
 	"strings"
 	"time"
 
@@ -91,14 +92,35 @@ type ElasticSetting struct {
 
 var CommonEsSetting = &ElasticSetting{}
 
+type GaiaOpenAPI struct {
+	BaseURL            string
+	AuthURL            string
+	GrantType          string
+	ClientSecret       string
+	CorpID             string
+	TokenTTLSeconds    int
+	SubmitLeavePath    string
+	MyApplicationsPath string
+	LeaveQuotaPath     string
+	LeaveTypesPath     string
+	LeaveHoursPath     string
+	ExceptionListPath  string
+}
+
+var GaiaOpenAPISetting = &GaiaOpenAPI{}
+
 var cfg *ini.File
 
 // Setup initialize the configuration instance
 func Setup() {
 	var err error
-	cfg, err = ini.LoadSources(ini.LoadOptions{IgnoreInlineComment: true}, "conf/app.ini")
+	configFile := os.Getenv("APP_CONFIG")
+	if configFile == "" {
+		configFile = "conf/app.ini"
+	}
+	cfg, err = ini.LoadSources(ini.LoadOptions{IgnoreInlineComment: true}, configFile)
 	if err != nil {
-		log.Fatalf("setting.Setup, fail to parse 'conf/app.ini': %v", err)
+		log.Fatalf("setting.Setup, fail to parse %q: %v", configFile, err)
 	}
 
 	mapTo("app", AppSetting)
@@ -110,6 +132,14 @@ func Setup() {
 	mapTo("kafka", KafkaCommonSetting)
 	mapTo("kafka_ticket_canal", TicketCanalKafkaSetting)
 	mapTo("kafka_bpm_ticket_operate", BpmTicketOperateKafkaSetting)
+	mapTo("gaia-openapi", GaiaOpenAPISetting)
+
+	if GaiaOpenAPISetting.GrantType == "" {
+		GaiaOpenAPISetting.GrantType = "client_credentials"
+	}
+	if GaiaOpenAPISetting.TokenTTLSeconds <= 0 {
+		GaiaOpenAPISetting.TokenTTLSeconds = 3600
+	}
 
 	AppSetting.ImageMaxSize = AppSetting.ImageMaxSize * 1024 * 1024
 	ServerSetting.ReadTimeout = ServerSetting.ReadTimeout * time.Second
