@@ -1,6 +1,10 @@
 package v1
 
 import (
+	"net/http"
+	"reflect"
+	"strings"
+
 	"github.com/EDDYCJY/go-gin-example/models"
 	"github.com/EDDYCJY/go-gin-example/pkg/app"
 	"github.com/EDDYCJY/go-gin-example/pkg/e"
@@ -8,9 +12,6 @@ import (
 	"github.com/EDDYCJY/go-gin-example/pkg/util"
 	"github.com/EDDYCJY/go-gin-example/service/base_service"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"reflect"
-	"strings"
 )
 
 func Paging[T models.DBEntity, F any](c *gin.Context, callback ...func(f *F, page *gormType.Page) (*gormType.Page, error)) {

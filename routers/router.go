@@ -1,12 +1,14 @@
 package routers
 
 import (
+	"net/http"
+
 	"github.com/EDDYCJY/go-gin-example/middleware/auth"
 	"github.com/EDDYCJY/go-gin-example/middleware/http_log"
 	"github.com/EDDYCJY/go-gin-example/pkg/setting"
+	v1 "github.com/EDDYCJY/go-gin-example/routers/api/v1"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 
@@ -40,7 +42,17 @@ func InitRouter() *gin.Engine {
 				apiv1.POST("/test", v1.AddTest)
 				apiv1.PUT("/test/:id", v1.EditTest)
 				apiv1.DELETE("/test/:id", v1.DeleteTest)*/
+	}
 
+	gaia := r.Group("/api/gaia/v1")
+	gaia.Use(http_log.LogMiddleware())
+	{
+		gaia.POST("/leave/submit", v1.LeaveSubmit)
+		gaia.GET("/leave/my-applications", v1.MyApplications)
+		gaia.POST("/leave/quota", v1.LeaveQuota)
+		gaia.GET("/leave/types", v1.LeaveTypes)
+		gaia.POST("/leave/hours", v1.LeaveHours)
+		gaia.GET("/leave/exceptions", v1.ExceptionList)
 	}
 	return r
 }
