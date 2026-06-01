@@ -3,6 +3,7 @@ package setting
 import (
 	"log"
 	"net"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -77,6 +78,26 @@ type ServiceAuth struct {
 }
 
 var ServiceAuthSetting = &ServiceAuth{}
+
+type OpenAPI struct {
+	Name         string
+	BaseUrl      string
+	AuthURL      string
+	AuthPath     string
+	GrantType    string
+	ClientSecret string
+	CorpID       string
+	TokenTTL     time.Duration
+	TokenTTLRaw  int `ini:"TokenTTLSeconds"`
+	TokenPrefix  string
+	PathPrefix   string
+	FixedHeaders string
+	UserAgent    string
+	Origin       string
+	Referer      string
+}
+
+var OpenAPISettings = map[string]*OpenAPI{}
 
 type Server struct {
 	RunMode      string
@@ -155,10 +176,6 @@ func Setup() {
 	mapTo("kafka_ticket_canal", TicketCanalKafkaSetting)
 	mapTo("kafka_bpm_ticket_operate", BpmTicketOperateKafkaSetting)
 	mapTo("gaia_api", GaiaApiSetting)
-	// backward compatibility: allow legacy section name [gaia-openapi]
-	if GaiaApiSetting.BaseUrl == "" && GaiaApiSetting.AuthPath == "" && GaiaApiSetting.AuthURL == "" {
-		mapTo("gaia-openapi", GaiaApiSetting)
-	}
 
 	if GaiaApiSetting.TokenTTL <= 0 && GaiaApiSetting.TokenTTLRaw > 0 {
 		GaiaApiSetting.TokenTTL = time.Duration(GaiaApiSetting.TokenTTLRaw)
@@ -168,9 +185,6 @@ func Setup() {
 		GaiaApiSetting.AuthPath = GaiaApiSetting.AuthURL
 	}
 
-	if GaiaApiSetting.BaseUrl == "" {
-		GaiaApiSetting.BaseUrl = cfg.Section("gaia-openapi").Key("BaseURL").String()
-	}
 	if GaiaApiSetting.BaseUrl == "" && GaiaApiSetting.AuthURL != "" {
 		GaiaApiSetting.BaseUrl = GaiaApiSetting.AuthURL
 	}
@@ -180,6 +194,7 @@ func Setup() {
 	if ServiceAuthSetting.TokenTTLSeconds <= 0 {
 		ServiceAuthSetting.TokenTTLSeconds = 7200
 	}
+	setupOpenAPISettings()
 
 	AppSetting.ImageMaxSize = AppSetting.ImageMaxSize * 1024 * 1024
 	ServerSetting.ReadTimeout = ServerSetting.ReadTimeout * time.Second
@@ -197,6 +212,80 @@ func mapTo(section string, v interface{}) {
 	if err != nil {
 		log.Fatalf("Cfg.MapTo %s err: %v", section, err)
 	}
+}
+
+func setupOpenAPISettings() {
+	OpenAPISettings = map[string]*OpenAPI{}
+	for _, section := range cfg.Sections() {
+		name := section.Name()
+		if !strings.HasPrefix(name, "openapi.") {
+			continue
+		}
+		appName := strings.TrimSpace(strings.TrimPrefix(name, "openapi."))
+		if appName == "" {
+			continue
+		}
+		openAPI := &OpenAPI{Name: appName}
+		if err := section.MapTo(openAPI); err != nil {
+			log.Fatalf("Cfg.MapTo %s err: %v", name, err)
+		}
+		normalizeOpenAPI(openAPI)
+		OpenAPISettings[appName] = openAPI
+	}
+}
+
+func normalizeOpenAPI(openAPI *OpenAPI) {
+	if openAPI.BaseUrl == "" {
+		openAPI.BaseUrl = cfg.Section("openapi." + openAPI.Name).Key("BaseURL").String()
+	}
+	openAPI.BaseUrl = strings.TrimRight(strings.TrimSpace(openAPI.BaseUrl), "/")
+	if openAPI.AuthPath == "" && openAPI.AuthURL != "" {
+		openAPI.AuthPath = openAPI.AuthURL
+	}
+	if openAPI.TokenPrefix == "" {
+		openAPI.TokenPrefix = "Bearer"
+	}
+	if openAPI.TokenTTL <= 0 && openAPI.TokenTTLRaw > 0 {
+		openAPI.TokenTTL = time.Duration(openAPI.TokenTTLRaw) * time.Second
+	}
+	if openAPI.TokenTTL <= 0 {
+		openAPI.TokenTTL = time.Hour
+	}
+	openAPI.PathPrefix = strings.Trim(strings.TrimSpace(openAPI.PathPrefix), "/")
+}
+
+func FindOpenAPIByURL(rawTargetURL string) (*OpenAPI, bool, error) {
+	target, err := url.Parse(strings.TrimLeft(strings.TrimSpace(rawTargetURL), "/"))
+	if err != nil {
+		return nil, false, err
+	}
+	if target.Scheme == "" || target.Host == "" {
+		return nil, false, nil
+	}
+
+	var matched *OpenAPI
+	longestBase := 0
+	for _, openAPI := range OpenAPISettings {
+		base, err := url.Parse(openAPI.BaseUrl)
+		if err != nil || base.Scheme == "" || base.Host == "" {
+			continue
+		}
+		if !strings.EqualFold(target.Scheme, base.Scheme) || !strings.EqualFold(target.Host, base.Host) {
+			continue
+		}
+		basePath := strings.TrimRight(base.Path, "/")
+		if basePath != "" && target.Path != basePath && !strings.HasPrefix(target.Path, basePath+"/") {
+			continue
+		}
+		if len(openAPI.BaseUrl) > longestBase {
+			matched = openAPI
+			longestBase = len(openAPI.BaseUrl)
+		}
+	}
+	if matched == nil {
+		return nil, false, nil
+	}
+	return matched, true, nil
 }
 
 func IsLocalDebug() bool {

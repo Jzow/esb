@@ -1,3080 +1,377 @@
 {
-    "swagger": "2.0",
-    "info": {
-        "description": "ticket service",
-        "title": "ticket API",
-        "termsOfService": "http://175.27.214.248:8888",
-        "contact": {},
-        "license": {
-            "name": "MIT",
-            "url": "http://175.27.214.248/gitlab-instance-80f356dd/ticket/-/blob/main/LICENSE"
-        },
-        "version": "1.0"
-    },
-    "paths": {
-        "/api/ticket/upload": {
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "util"
-                ],
-                "summary": "Import image",
-                "parameters": [
-                    {
-                        "type": "file",
-                        "description": "Image File",
-                        "name": "image",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
+  "schemes": [
+    "http"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "ESB 对外提供用户登录、退出登录和 /api/esb/v1/{第三方完整URL} 通用代理接口。APP TOKEN 使用 X-API-Token，直接填写 token 原值，不要加 Bearer。",
+    "title": "ESB OpenAPI 通用代理服务",
+    "contact": {},
+    "version": "1.0"
+  },
+  "host": "localhost:8000",
+  "basePath": "/",
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "服务认证"
+        ],
+        "summary": "用户登录",
+        "description": "使用账号密码换取 ESB 用户登录 token。用户 token 存储在 Redis，默认 2 小时有效。agent 或系统对系统调用建议使用 X-API-Token APP TOKEN。",
+        "parameters": [
+          {
+            "description": "登录参数",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LoginRequest"
             }
-        },
-        "/api/ticket/v1/create": {
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ticket"
-                ],
-                "summary": "Create ticket",
-                "parameters": [
-                    {
-                        "description": "创建工单信息",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/v1.CreateTicketForm"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "field_json": {
-                                            "allOf": [
-                                                {
-                                                    "$ref": "#/definitions/gormType.JSONMap"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "common": {
-                                                            "type": "object"
-                                                        },
-                                                        "product": {
-                                                            "type": "object"
-                                                        },
-                                                        "sub_product": {
-                                                            "type": "object"
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "data=ticket_id when success",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/app.SuccessResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "登录成功",
+            "schema": {
+              "$ref": "#/definitions/LoginResponse"
             }
-        },
-        "/api/ticket/v1/customFieldConfig": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "customFieldConfig"
-                ],
-                "summary": "Get multiple customFieldConfigs",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "租户ID",
-                        "name": "tenantId",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "应用ID",
-                        "name": "projectId",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "字段类型(search:搜索字段 list:列表字段)",
-                        "name": "type",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "用户ID",
-                        "name": "userId",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "customFieldConfig"
-                ],
-                "summary": "Add customFieldConfig",
-                "parameters": [
-                    {
-                        "description": "添加用户搜索配置",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.AddTicketCustomFieldConfigForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
+          },
+          "400": {
+            "description": "参数错误",
+            "schema": {
+              "$ref": "#/definitions/Response"
             }
-        },
-        "/api/ticket/v1/customFieldConfig/{id}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "customFieldConfig"
-                ],
-                "summary": "Get a single customFieldConfig",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "config_id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "customFieldConfig"
-                ],
-                "summary": "Update customFieldConfig",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "config_id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "更新用户搜索配置",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.EditTicketCustomFieldConfigForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "customFieldConfig"
-                ],
-                "summary": "Delete customFieldConfig",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "config_id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
+          },
+          "401": {
+            "description": "账号或密码错误",
+            "schema": {
+              "$ref": "#/definitions/Response"
             }
-        },
-        "/api/ticket/v1/detail/{id}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ticket"
-                ],
-                "summary": "Get a single ticket",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 14995717898715136,
-                        "description": "工单ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "maxLength": 32,
-                        "type": "string",
-                        "default": "a104c2b52ee611ef965708c0eb4e5df7",
-                        "name": "opt_user_id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "maxLength": 32,
-                        "type": "string",
-                        "default": "10003487779b444bb964985fcba10003",
-                        "name": "tenant_id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.SuccessResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/fieldConfig": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "fieldConfig"
-                ],
-                "summary": "Get multiple fieldConfigs",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "租户ID",
-                        "name": "tenantId",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "应用ID",
-                        "name": "projectId",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "字段类型(search:搜索字段 list:列表字段)",
-                        "name": "type",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "字段英文名称",
-                        "name": "fieldCode",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "fieldConfig"
-                ],
-                "summary": "Add fieldConfig",
-                "parameters": [
-                    {
-                        "description": "添加用户搜索配置",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.AddTicketFieldConfigForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/fieldConfig/{id}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "fieldConfig"
-                ],
-                "summary": "Get a single fieldConfig",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "config_id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "fieldConfig"
-                ],
-                "summary": "Update fieldConfig",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "config_id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "更新用户搜索配置",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.EditTicketFieldConfigForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "fieldConfig"
-                ],
-                "summary": "Delete fieldConfig",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "config_id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/getArtiReason": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ticket"
-                ],
-                "summary": "Get arti reason",
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/app.SuccessResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/history/{id}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ticket"
-                ],
-                "summary": "Get ticket operation history",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 14813152003833856,
-                        "description": "工单ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/app.SuccessResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/modify": {
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ticket"
-                ],
-                "summary": "Modify ticket",
-                "parameters": [
-                    {
-                        "description": "工单信息",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.TicketOperateForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.SuccessResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/msg/{id}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ticket"
-                ],
-                "summary": "Get ticket session messages",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 17411521937227776,
-                        "description": "ticketId",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/nodeOperate": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "nodeOperate"
-                ],
-                "summary": "Get multiple nodeOperates",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "租户ID",
-                        "name": "tenantId",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "应用ID",
-                        "name": "projectId",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "环节结点码",
-                        "name": "nodeCode",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "nodeOperate"
-                ],
-                "summary": "Add nodeOperate",
-                "parameters": [
-                    {
-                        "description": "添加工单环节结点操作映射",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.TicketNodeOperateForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/nodeOperate/{id}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "nodeOperate"
-                ],
-                "summary": "Get a single nodeOperate",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "node_operate_id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "nodeOperate"
-                ],
-                "summary": "Update nodeOperate",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "node_operate_id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "更新工单环节结点操作映射",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.TicketNodeOperateForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "nodeOperate"
-                ],
-                "summary": "Delete nodeOperate",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "node_operate_id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/operate": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "operate"
-                ],
-                "summary": "Get multiple operates",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "\"环节码(多个用逗号分隔)\" default(claim,close,modify,urge,info)",
-                        "name": "operate_code",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "name": "project_id",
-                        "in": "query"
-                    },
-                    {
-                        "maxLength": 32,
-                        "type": "string",
-                        "default": "10000487779b444bb964985fcba10000",
-                        "name": "tenant_id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "operate"
-                ],
-                "summary": "Add operate",
-                "parameters": [
-                    {
-                        "description": "添加工单操作",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.AddTicketOperateForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/operate/{id}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "operate"
-                ],
-                "summary": "Get a single operate",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "default": "claim",
-                        "description": "操作码 operate_code",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "operate"
-                ],
-                "summary": "Update operate",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "工单操作ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "更新工单操作(form_id:form_id无值且form_field_json有值会新增表单,form_id有值且form_field_json有值会更新表单,form_id有值且form_field_json无值会删除表单)",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.EditTicketOperateForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "operate"
-                ],
-                "summary": "Delete operate",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "工单操作ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/productForm": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "productForm"
-                ],
-                "summary": "Get a single productForm by other field condition",
-                "parameters": [
-                    {
-                        "minimum": 1,
-                        "type": "integer",
-                        "default": 98701,
-                        "name": "product_id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "name": "project_id",
-                        "in": "query"
-                    },
-                    {
-                        "maxLength": 32,
-                        "type": "string",
-                        "default": "10000487779b444bb964985fcba10000",
-                        "name": "tenant_id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "maxLength": 50,
-                        "type": "string",
-                        "default": "problem",
-                        "description": "工单类型(problem、event)",
-                        "name": "type_code",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "productForm"
-                ],
-                "summary": "Add productForm",
-                "parameters": [
-                    {
-                        "description": "绑定工单类型产品表单(type_code:problem=问题工单、event=事件工单)",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.AddTicketProductFormData"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/productForm/{id}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "productForm"
-                ],
-                "summary": "Get a single productForm by ticket_type_product_id",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ticket_type_product_id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "productForm"
-                ],
-                "summary": "Update productForm",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ticket_type_product_id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "保存工单类型产品表单(type_code:problem=问题工单、event=事件工单;form_id:form_id无值且form_field_json有值会新增表单,form_id有值且form_field_json有值会更新表单,form_id有值且form_field_json无值会删除表单)",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.EditTicketProductFormData"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "productForm"
-                ],
-                "summary": "Delete productForm",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ticket_type_product_id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/satisfaction/evaluate/{id}": {
-            "put": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ticket"
-                ],
-                "summary": "evaluate ticket",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 14734898466209792,
-                        "description": "工单ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "满意度评分",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.SatisfactionEvaluateForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/satisfactionConfig": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "satisfactionConfig"
-                ],
-                "summary": "Get multiple satisfaction configs",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "name": "project_id",
-                        "in": "query"
-                    },
-                    {
-                        "maxLength": 32,
-                        "type": "string",
-                        "default": "10000487779b444bb964985fcba10000",
-                        "name": "tenant_id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "satisfactionConfig"
-                ],
-                "summary": "Add satisfactionConfig",
-                "parameters": [
-                    {
-                        "description": "配置信息",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.AddSatisfactionConfigForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/satisfactionConfig/{id}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "satisfactionConfig"
-                ],
-                "summary": "Get a single satisfactionConfig",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "配置ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "satisfactionConfig"
-                ],
-                "summary": "Update satisfactionConfig",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "配置ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "更新配置信息",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.EditSatisfactionConfigForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "satisfactionConfig"
-                ],
-                "summary": "Delete satisfactionConfig",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "配置ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/search": {
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ticket"
-                ],
-                "summary": "Search tickets",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "name": "page_index",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "name": "page_size",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "1:导出",
-                        "name": "export",
-                        "in": "query"
-                    },
-                    {
-                        "description": "工单搜索信息",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.SearchTicket"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/app.SuccessResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/search/done": {
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ticket"
-                ],
-                "summary": "SearchDone tickets",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "name": "page_index",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "name": "page_size",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "1:导出",
-                        "name": "export",
-                        "in": "query"
-                    },
-                    {
-                        "description": "我的已办工单搜索信息",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.SearchDoneTicket"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/app.SuccessResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/search/todo": {
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ticket"
-                ],
-                "summary": "SearchToDo tickets",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "name": "page_index",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "name": "page_size",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "1:导出",
-                        "name": "export",
-                        "in": "query"
-                    },
-                    {
-                        "description": "我的待办工单搜索信息",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.SearchToDoTicket"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/app.SuccessResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/ticketType": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ticketType"
-                ],
-                "summary": "Get multiple ticketTypes",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "name": "project_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "不传查询全部 0=未启用 1=启用 2=禁用 3=删除",
-                        "name": "status",
-                        "in": "query"
-                    },
-                    {
-                        "maxLength": 32,
-                        "type": "string",
-                        "default": "10000487779b444bb964985fcba10000",
-                        "name": "tenant_id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ticketType"
-                ],
-                "summary": "Add ticketType",
-                "parameters": [
-                    {
-                        "description": "添加工单类型",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.AddTicketTypeForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/ticketType/{id}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ticketType"
-                ],
-                "summary": "Get a single ticketType",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "default": "problem",
-                        "description": "工单类型TypeCode参数(如：problem=问题工单 event=事件工单)",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "default": "1",
-                        "description": "1:同时查询表单设计",
-                        "name": "form_flag",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ticketType"
-                ],
-                "summary": "Save ticketType",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "工单类型ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "保存工单类型(type_code:problem=问题工单、event=事件工单;form_id:form_id无值且form_field_json有值会新增表单,form_id有值且form_field_json有值会更新表单,form_id有值且form_field_json无值会删除表单)",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.EditTicketTypeForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ticketType"
-                ],
-                "summary": "Delete ticketType",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "工单类型ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/transfer/product": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "transfer"
-                ],
-                "summary": "Get transfer product",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 16501093096833024,
-                        "name": "ticket_id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/transfer/seat": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "transfer"
-                ],
-                "summary": "Get transfer seats",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 16501093096833024,
-                        "name": "ticket_id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/ticket/v1/transfer/skill_group": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "transfer"
-                ],
-                "summary": "Get transfer skill group",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 16501093096833024,
-                        "name": "ticket_id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/service/ticket/v1/detail/{id}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "service"
-                ],
-                "summary": "Get ticket info",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 14733615563358208,
-                        "description": "工单ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.SuccessResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/service/ticket/v1/operate": {
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "service"
-                ],
-                "summary": "Create ticket",
-                "parameters": [
-                    {
-                        "description": "工单操作",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.QuickTicketOperateForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "data=ticket_id when success",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/app.SuccessResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "failure http status",
-                        "schema": {
-                            "$ref": "#/definitions/app.Response"
-                        }
-                    }
-                }
-            }
+          }
         }
+      }
     },
-    "definitions": {
-        "app.Response": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer"
-                },
-                "data": {},
-                "msg": {
-                    "type": "string"
-                }
+    "/api/auth/logout": {
+      "post": {
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "服务认证"
+        ],
+        "summary": "退出登录",
+        "description": "删除 Redis 中的用户登录 token。APP TOKEN 是配置文件中的静态令牌，不受退出登录影响。",
+        "security": [
+          {
+            "UserBearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "退出成功",
+            "schema": {
+              "$ref": "#/definitions/Response"
             }
-        },
-        "app.SuccessResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "example": 200
-                },
-                "data": {},
-                "msg": {
-                    "type": "string",
-                    "example": "ok"
-                }
+          },
+          "401": {
+            "description": "token 无效或已过期",
+            "schema": {
+              "$ref": "#/definitions/Response"
             }
-        },
-        "gormType.JSONMap": {
-            "type": "object",
-            "additionalProperties": true
-        },
-        "v1.AddSatisfactionConfigForm": {
-            "type": "object",
-            "required": [
-                "name",
-                "tenant_id"
-            ],
-            "properties": {
-                "content": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string",
-                    "maxLength": 50
-                },
-                "project_id": {
-                    "type": "string",
-                    "maxLength": 32
-                },
-                "score": {
-                    "type": "integer"
-                },
-                "tag": {
-                    "type": "string"
-                },
-                "tenant_id": {
-                    "type": "string",
-                    "default": "10000487779b444bb964985fcba10000",
-                    "maxLength": 32
-                }
-            }
-        },
-        "v1.AddTicketCustomFieldConfigForm": {
-            "type": "object",
-            "properties": {
-                "create_user_id": {
-                    "type": "string"
-                },
-                "field_json": {
-                    "type": "string"
-                },
-                "field_tag": {
-                    "type": "string"
-                },
-                "project_id": {
-                    "type": "string"
-                },
-                "tenant_id": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.AddTicketFieldConfigForm": {
-            "type": "object",
-            "properties": {
-                "create_user_id": {
-                    "type": "string"
-                },
-                "field_chn_name": {
-                    "type": "string"
-                },
-                "field_eng_name": {
-                    "type": "string"
-                },
-                "field_group": {
-                    "type": "integer"
-                },
-                "field_tag": {
-                    "type": "string"
-                },
-                "field_type": {
-                    "type": "string"
-                },
-                "options": {
-                    "type": "string"
-                },
-                "project_id": {
-                    "type": "string"
-                },
-                "sort": {
-                    "type": "integer"
-                },
-                "tenant_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.AddTicketOperateForm": {
-            "type": "object",
-            "required": [
-                "create_user_id",
-                "operate_code",
-                "operate_name",
-                "tenant_id"
-            ],
-            "properties": {
-                "admin": {
-                    "type": "string",
-                    "maxLength": 1000
-                },
-                "create_user_id": {
-                    "type": "string",
-                    "default": "dce4b836dad3423eb3d51c8ad57f9ac4",
-                    "maxLength": 32
-                },
-                "form_field_json": {
-                    "$ref": "#/definitions/gormType.JSONMap"
-                },
-                "operate_code": {
-                    "type": "string",
-                    "maxLength": 50
-                },
-                "operate_name": {
-                    "type": "string",
-                    "maxLength": 50
-                },
-                "project_id": {
-                    "type": "string",
-                    "maxLength": 32
-                },
-                "sort": {
-                    "type": "integer"
-                },
-                "tenant_id": {
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "10000487779b444bb964985fcba10000"
-                }
-            }
-        },
-        "v1.AddTicketProductFormData": {
-            "type": "object",
-            "required": [
-                "product_id",
-                "tenant_id",
-                "type_code"
-            ],
-            "properties": {
-                "form_field_json": {
-                    "$ref": "#/definitions/gormType.JSONMap"
-                },
-                "product_id": {
-                    "type": "integer",
-                    "default": 98701,
-                    "minimum": 1
-                },
-                "project_id": {
-                    "type": "string",
-                    "maxLength": 32
-                },
-                "tenant_id": {
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "10000487779b444bb964985fcba10000"
-                },
-                "type_code": {
-                    "description": "工单类型(problem、event)",
-                    "type": "string",
-                    "default": "problem",
-                    "maxLength": 50
-                }
-            }
-        },
-        "v1.AddTicketTypeForm": {
-            "type": "object",
-            "required": [
-                "flow_code",
-                "tenant_id",
-                "type_code",
-                "type_name"
-            ],
-            "properties": {
-                "admin": {
-                    "type": "string",
-                    "maxLength": 1000
-                },
-                "comment": {
-                    "type": "string",
-                    "maxLength": 1000
-                },
-                "flow_code": {
-                    "type": "string",
-                    "maxLength": 255
-                },
-                "icon": {
-                    "type": "string",
-                    "maxLength": 255
-                },
-                "project_id": {
-                    "type": "string",
-                    "maxLength": 32
-                },
-                "status": {
-                    "description": "0=未启用 1=启用 2=禁用 3=删除",
-                    "type": "integer",
-                    "example": 1
-                },
-                "tenant_id": {
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "10000487779b444bb964985fcba10000"
-                },
-                "type_code": {
-                    "type": "string",
-                    "maxLength": 50
-                },
-                "type_name": {
-                    "type": "string",
-                    "maxLength": 50
-                }
-            }
-        },
-        "v1.CreateTicketForm": {
-            "type": "object",
-            "required": [
-                "apply_user_id",
-                "create_user_id",
-                "field_json",
-                "product_id",
-                "tenant_id",
-                "ticket_type"
-            ],
-            "properties": {
-                "apply_time": {
-                    "type": "string"
-                },
-                "apply_user_id": {
-                    "type": "string",
-                    "default": "a104c2b52ee611ef965708c0eb4e5df7",
-                    "maxLength": 32
-                },
-                "channel": {
-                    "type": "string",
-                    "maxLength": 50
-                },
-                "channel_id": {
-                    "type": "string",
-                    "maxLength": 255
-                },
-                "create_user_id": {
-                    "type": "string",
-                    "default": "a104c2b52ee611ef965708c0eb4e5df7",
-                    "maxLength": 32
-                },
-                "description": {
-                    "type": "string"
-                },
-                "field_json": {
-                    "$ref": "#/definitions/gormType.JSONMap"
-                },
-                "product_id": {
-                    "type": "integer",
-                    "default": 98701,
-                    "minimum": 1
-                },
-                "product_sub_id": {
-                    "type": "integer"
-                },
-                "project_id": {
-                    "type": "string",
-                    "maxLength": 32
-                },
-                "tenant_id": {
-                    "type": "string",
-                    "default": "10000487779b444bb964985fcba10000",
-                    "maxLength": 32
-                },
-                "ticket_type": {
-                    "description": "ticket type code, use problem or event value currently",
-                    "type": "string",
-                    "maxLength": 50,
-                    "enum": [
-                        "problem",
-                        "event"
-                    ],
-                    "example": "problem"
-                }
-            }
-        },
-        "v1.EditSatisfactionConfigForm": {
-            "type": "object",
-            "required": [
-                "name",
-                "tenant_id"
-            ],
-            "properties": {
-                "content": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string",
-                    "maxLength": 50
-                },
-                "project_id": {
-                    "type": "string",
-                    "maxLength": 32
-                },
-                "score": {
-                    "type": "integer"
-                },
-                "tag": {
-                    "type": "string"
-                },
-                "tenant_id": {
-                    "type": "string",
-                    "default": "10000487779b444bb964985fcba10000",
-                    "maxLength": 32
-                }
-            }
-        },
-        "v1.EditTicketCustomFieldConfigForm": {
-            "type": "object",
-            "properties": {
-                "field_json": {
-                    "type": "string"
-                },
-                "field_tag": {
-                    "type": "string"
-                },
-                "project_id": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "tenant_id": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.EditTicketFieldConfigForm": {
-            "type": "object",
-            "properties": {
-                "field_chn_name": {
-                    "type": "string"
-                },
-                "field_eng_name": {
-                    "type": "string"
-                },
-                "field_group": {
-                    "type": "integer"
-                },
-                "field_tag": {
-                    "type": "string"
-                },
-                "field_type": {
-                    "type": "string"
-                },
-                "options": {
-                    "type": "string"
-                },
-                "project_id": {
-                    "type": "string"
-                },
-                "sort": {
-                    "type": "integer"
-                },
-                "status": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "tenant_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.EditTicketOperateForm": {
-            "type": "object",
-            "required": [
-                "operate_code",
-                "operate_name",
-                "tenant_id"
-            ],
-            "properties": {
-                "admin": {
-                    "type": "string",
-                    "maxLength": 1000
-                },
-                "form_field_json": {
-                    "$ref": "#/definitions/gormType.JSONMap"
-                },
-                "form_id": {
-                    "type": "integer"
-                },
-                "operate_code": {
-                    "type": "string",
-                    "maxLength": 50
-                },
-                "operate_name": {
-                    "type": "string",
-                    "maxLength": 50
-                },
-                "opt_user_id": {
-                    "type": "string",
-                    "default": "dce4b836dad3423eb3d51c8ad57f9ac4",
-                    "maxLength": 32
-                },
-                "project_id": {
-                    "type": "string",
-                    "maxLength": 32
-                },
-                "sort": {
-                    "type": "integer"
-                },
-                "status": {
-                    "description": "0=未启用 1=启用 2=禁用 3=删除",
-                    "type": "integer",
-                    "default": 1
-                },
-                "tenant_id": {
-                    "type": "string",
-                    "default": "10000487779b444bb964985fcba10000",
-                    "maxLength": 32
-                }
-            }
-        },
-        "v1.EditTicketProductFormData": {
-            "type": "object",
-            "required": [
-                "product_id",
-                "tenant_id",
-                "type_code"
-            ],
-            "properties": {
-                "form_field_json": {
-                    "$ref": "#/definitions/gormType.JSONMap"
-                },
-                "form_id": {
-                    "type": "integer"
-                },
-                "opt_user_id": {
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "dce4b836dad3423eb3d51c8ad57f9ac4"
-                },
-                "product_id": {
-                    "type": "integer",
-                    "default": 98701,
-                    "minimum": 1
-                },
-                "project_id": {
-                    "type": "string",
-                    "maxLength": 32
-                },
-                "tenant_id": {
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "10000487779b444bb964985fcba10000"
-                },
-                "type_code": {
-                    "description": "工单类型(problem、event)",
-                    "type": "string",
-                    "default": "problem",
-                    "maxLength": 50
-                }
-            }
-        },
-        "v1.EditTicketTypeForm": {
-            "type": "object",
-            "required": [
-                "flow_code",
-                "tenant_id",
-                "type_code",
-                "type_name"
-            ],
-            "properties": {
-                "admin": {
-                    "type": "string",
-                    "maxLength": 1000
-                },
-                "comment": {
-                    "type": "string",
-                    "maxLength": 1000
-                },
-                "flow_code": {
-                    "type": "string",
-                    "maxLength": 255
-                },
-                "form_field_json": {
-                    "$ref": "#/definitions/gormType.JSONMap"
-                },
-                "form_id": {
-                    "type": "integer"
-                },
-                "icon": {
-                    "type": "string",
-                    "maxLength": 255
-                },
-                "opt_user_id": {
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "dce4b836dad3423eb3d51c8ad57f9ac4"
-                },
-                "project_id": {
-                    "type": "string",
-                    "maxLength": 32
-                },
-                "status": {
-                    "description": "0=未启用 1=启用 2=禁用 3=删除",
-                    "type": "integer",
-                    "example": 1
-                },
-                "tenant_id": {
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "10000487779b444bb964985fcba10000"
-                },
-                "type_code": {
-                    "type": "string",
-                    "maxLength": 50
-                },
-                "type_name": {
-                    "type": "string",
-                    "maxLength": 50
-                }
-            }
-        },
-        "v1.QuickTicketOperateForm": {
-            "type": "object",
-            "required": [
-                "apply_user_id",
-                "channel",
-                "channel_id",
-                "tenant_id",
-                "ticket_type"
-            ],
-            "properties": {
-                "apply_user_id": {
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "a104c2b52ee611ef965708c0eb4e5df7"
-                },
-                "channel": {
-                    "description": "来源，目前固定为seat",
-                    "type": "string",
-                    "maxLength": 50,
-                    "example": "seat"
-                },
-                "channel_id": {
-                    "description": "来源ID，当为seat时表示会话ID",
-                    "type": "string",
-                    "maxLength": 255
-                },
-                "claim_user_id": {
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "a104c2b52ee611ef965708c0eb4e5df7"
-                },
-                "operate_code": {
-                    "type": "string",
-                    "enum": [
-                        "claim",
-                        "modify",
-                        "settlement",
-                        "transfer",
-                        "agree",
-                        "disagree",
-                        "close",
-                        "lock",
-                        "unlock",
-                        "urge",
-                        "info"
-                    ],
-                    "example": "claim"
-                },
-                "product_id": {
-                    "type": "integer",
-                    "example": 98701
-                },
-                "project_id": {
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "20004487779b444bb964985fcba20004"
-                },
-                "tenant_id": {
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "10003487779b444bb964985fcba10003"
-                },
-                "ticket_type": {
-                    "description": "ticket type code, use problem or event value currently",
-                    "type": "string",
-                    "maxLength": 50,
-                    "enum": [
-                        "problem",
-                        "event"
-                    ],
-                    "example": "problem"
-                }
-            }
-        },
-        "v1.SatisfactionEvaluateForm": {
-            "type": "object",
-            "required": [
-                "channel",
-                "opt_user_id",
-                "project_id",
-                "score",
-                "tenant_id"
-            ],
-            "properties": {
-                "channel": {
-                    "type": "string",
-                    "maxLength": 50,
-                    "enum": [
-                        "PC",
-                        "SmallApp"
-                    ],
-                    "example": "PC"
-                },
-                "opt_user_id": {
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "39211a3659fb42efa2442d1d53412d65"
-                },
-                "project_id": {
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "20004487779b444bb964985fcba20004"
-                },
-                "remark": {
-                    "type": "string",
-                    "example": "热情主动的"
-                },
-                "score": {
-                    "type": "integer",
-                    "example": 5
-                },
-                "tag": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "tenant_id": {
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "10003487779b444bb964985fcba10003"
-                }
-            }
-        },
-        "v1.SearchDoneTicket": {
-            "type": "object",
-            "required": [
-                "claim_user_id",
-                "tenant_id"
-            ],
-            "properties": {
-                "apply_user_id": {
-                    "description": "反馈人",
-                    "type": "string",
-                    "maxLength": 32
-                },
-                "claim_user_id": {
-                    "description": "认领人",
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "a28fe4afc35a49dea2bc4a38f9cf51cc"
-                },
-                "create_time_range": {
-                    "description": "起始时间,结束时间  (结束时间缺省时，等同于 起始时间,now) 格式支持：日期、时间、时间戳(精确到秒，即10位数)",
-                    "type": "string",
-                    "example": "2023-09-01"
-                },
-                "create_user_id": {
-                    "description": "建单人",
-                    "type": "string",
-                    "maxLength": 32
-                },
-                "operate_code": {
-                    "description": "多个逗号分隔开",
-                    "type": "string",
-                    "enum": [
-                        "claim",
-                        "close",
-                        "modify",
-                        "urge",
-                        "info",
-                        "settlement",
-                        "transfer",
-                        "lock",
-                        "unlock",
-                        "agree",
-                        "disagree",
-                        "completed",
-                        "uncompleted"
-                    ]
-                },
-                "order": {
-                    "type": "string",
-                    "example": "completed_status"
-                },
-                "product_id": {
-                    "type": "integer"
-                },
-                "product_sub_id": {
-                    "type": "integer"
-                },
-                "tenant_id": {
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "10003487779b444bb964985fcba10003"
-                },
-                "ticket_id": {
-                    "type": "integer"
-                },
-                "ticket_type": {
-                    "description": "工单分类：problem=问题工单 event=事件工单",
-                    "type": "string",
-                    "maxLength": 50,
-                    "example": "problem"
-                }
-            }
-        },
-        "v1.SearchTicket": {
-            "type": "object",
-            "properties": {
-                "apply_user_id": {
-                    "description": "反馈人",
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "a104c2b52ee611ef965708c0eb4e5df7"
-                },
-                "claim_user_id": {
-                    "description": "认领人",
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "a104c2b52ee611ef965708c0eb4e5df7"
-                },
-                "create_time_range": {
-                    "description": "起始时间,结束时间  (结束时间缺省时，等同于 起始时间,now) 格式支持：日期、时间、时间戳(精确到秒，即10位数)",
-                    "type": "string",
-                    "example": "2023-09-01"
-                },
-                "create_user_id": {
-                    "description": "建单人",
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "a104c2b52ee611ef965708c0eb4e5df7"
-                },
-                "operate_code": {
-                    "description": "多个逗号分隔开",
-                    "type": "string",
-                    "enum": [
-                        "start",
-                        "claim",
-                        "close",
-                        "modify",
-                        "urge",
-                        "info",
-                        "settlement",
-                        "transfer",
-                        "lock",
-                        "unlock",
-                        "agree",
-                        "disagree",
-                        "evaluate",
-                        "completed",
-                        "uncompleted"
-                    ]
-                },
-                "opt_user_id": {
-                    "type": "string",
-                    "maxLength": 32
-                },
-                "order": {
-                    "type": "string",
-                    "example": "completed_status"
-                },
-                "product_id": {
-                    "type": "integer"
-                },
-                "product_sub_id": {
-                    "type": "integer"
-                },
-                "tenant_id": {
-                    "type": "string",
-                    "maxLength": 32
-                },
-                "ticket_id": {
-                    "type": "integer"
-                },
-                "ticket_type": {
-                    "description": "工单分类：problem=问题工单 event=事件工单",
-                    "type": "string",
-                    "maxLength": 50,
-                    "example": "problem"
-                }
-            }
-        },
-        "v1.SearchToDoTicket": {
-            "type": "object",
-            "properties": {
-                "apply_user_id": {
-                    "description": "反馈人",
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "a104c2b52ee611ef965708c0eb4e5df7"
-                },
-                "create_time_range": {
-                    "description": "起始时间,结束时间  (结束时间缺省时，等同于 起始时间,now) 格式支持：日期、时间、时间戳(精确到秒，即10位数)",
-                    "type": "string",
-                    "example": "2023-09-01"
-                },
-                "create_user_id": {
-                    "description": "建单人",
-                    "type": "string",
-                    "maxLength": 32,
-                    "example": "a104c2b52ee611ef965708c0eb4e5df7"
-                },
-                "operate_code": {
-                    "description": "多个逗号分隔开",
-                    "type": "string",
-                    "enum": [
-                        "start",
-                        "modify",
-                        "urge",
-                        "transfer"
-                    ]
-                },
-                "product_id": {
-                    "type": "integer"
-                },
-                "product_sub_id": {
-                    "type": "integer"
-                },
-                "ticket_id": {
-                    "type": "integer"
-                },
-                "ticket_type": {
-                    "description": "工单分类：problem=问题工单 event=事件工单",
-                    "type": "string",
-                    "maxLength": 50,
-                    "example": "problem"
-                }
-            }
-        },
-        "v1.TicketNodeOperateForm": {
-            "type": "object",
-            "properties": {
-                "node_code": {
-                    "type": "string"
-                },
-                "operate_code": {
-                    "type": "string"
-                },
-                "project_id": {
-                    "type": "string"
-                },
-                "tenant_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.TicketOperateForm": {
-            "type": "object",
-            "required": [
-                "apply_user_id",
-                "operate_code",
-                "operate_user_id",
-                "ticket_id"
-            ],
-            "properties": {
-                "apply_user_id": {
-                    "type": "string",
-                    "default": "a104c2b52ee611ef965708c0eb4e5df7",
-                    "maxLength": 32
-                },
-                "arti_reason": {
-                    "description": "进线原因/人工原因，结单时填写",
-                    "type": "integer"
-                },
-                "description": {
-                    "description": "问题描述，非结束状态下可编写",
-                    "type": "string"
-                },
-                "field_json": {
-                    "description": "扩展参数，如转单示例。转指定坐席：{\"NextApprovalUserId\":\"a104c2b52ee611ef965708c0eb4e5df7\"}；转技能组角色：{\"SkillGroup\":57}；转一级产品：{\"ProductId\":81001}；转二级产品：{\"ProductId\":81001,\"ProductSubId\":81010}",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gormType.JSONMap"
-                        }
-                    ]
-                },
-                "operate_code": {
-                    "description": "ApplyTime     string           `json:\"apply_time\"  valid:\"Required;MaxSize(32)\" validate:\"required\" maxLength:\"32\" default:\"2006-01-02 15:04:05\"`",
-                    "type": "string",
-                    "enum": [
-                        "claim",
-                        "modify",
-                        "settlement",
-                        "transfer",
-                        "agree",
-                        "disagree",
-                        "close",
-                        "lock",
-                        "unlock",
-                        "urge",
-                        "info"
-                    ],
-                    "example": "modify"
-                },
-                "operate_user_id": {
-                    "type": "string",
-                    "example": "a104c2b52ee611ef965708c0eb4e5df7"
-                },
-                "product_id": {
-                    "description": "一级产品",
-                    "type": "integer"
-                },
-                "product_sub_id": {
-                    "description": "二级产品",
-                    "type": "integer"
-                },
-                "reason": {
-                    "description": "操作原因，如转单原因",
-                    "type": "string"
-                },
-                "solution": {
-                    "description": "解决方案，结单时填写",
-                    "type": "string"
-                },
-                "ticket_id": {
-                    "description": "工单ID",
-                    "type": "integer",
-                    "minimum": 1,
-                    "example": 14813152003833856
-                }
-            }
+          }
         }
+      }
+    },
+    "/api/esb/v1/{url}": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "OpenAPI 通用代理"
+        ],
+        "summary": "GET 转发第三方完整 URL",
+        "description": "把第三方完整 URL 放在 /api/esb/v1/ 后面，例如 /api/esb/v1/https://gaiaopenapi-s.copm.com.cn/atd-webapi/api/v1/workflow/apply/list。APP TOKEN 使用 X-API-Token，且不要加 Bearer。Swagger 对完整 URL 路径参数支持有限，实际联调建议使用 Apifox、Postman 或 curl。",
+        "security": [
+          {
+            "ApiTokenAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "第三方完整 URL，包含 https://、域名、路径和查询参数。Swagger 展示为 {url}，实际路由会接收后面的完整路径。",
+            "name": "url",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "转发成功",
+            "schema": {
+              "$ref": "#/definitions/Response"
+            }
+          },
+          "401": {
+            "description": "APP TOKEN 缺失、错误或无应用权限",
+            "schema": {
+              "$ref": "#/definitions/Response"
+            }
+          },
+          "500": {
+            "description": "第三方接口返回异常或 ESB 转发失败",
+            "schema": {
+              "$ref": "#/definitions/Response"
+            }
+          }
+        }
+      },
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "OpenAPI 通用代理"
+        ],
+        "summary": "POST 转发第三方完整 URL",
+        "description": "把请求方法、query 和 JSON body 原样转发给第三方。ESB 会自动处理第三方 OAuth token、固定请求头和响应包装。",
+        "security": [
+          {
+            "ApiTokenAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "第三方完整 URL，包含 https://、域名、路径和查询参数。",
+            "name": "url",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "需要转发给第三方的 JSON 请求体",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ProxyBody"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "转发成功",
+            "schema": {
+              "$ref": "#/definitions/Response"
+            }
+          },
+          "401": {
+            "description": "APP TOKEN 缺失、错误或无应用权限",
+            "schema": {
+              "$ref": "#/definitions/Response"
+            }
+          },
+          "500": {
+            "description": "第三方接口返回异常或 ESB 转发失败",
+            "schema": {
+              "$ref": "#/definitions/Response"
+            }
+          }
+        }
+      },
+      "put": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "OpenAPI 通用代理"
+        ],
+        "summary": "PUT 转发第三方完整 URL",
+        "description": "使用 X-API-Token 调用。APP TOKEN 是普通应用令牌，不要加 Bearer。",
+        "security": [
+          {
+            "ApiTokenAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "第三方完整 URL，包含 https://、域名、路径和查询参数。",
+            "name": "url",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "需要转发给第三方的 JSON 请求体",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ProxyBody"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "转发成功",
+            "schema": {
+              "$ref": "#/definitions/Response"
+            }
+          },
+          "401": {
+            "description": "APP TOKEN 缺失、错误或无应用权限",
+            "schema": {
+              "$ref": "#/definitions/Response"
+            }
+          },
+          "500": {
+            "description": "第三方接口返回异常或 ESB 转发失败",
+            "schema": {
+              "$ref": "#/definitions/Response"
+            }
+          }
+        }
+      },
+      "delete": {
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "OpenAPI 通用代理"
+        ],
+        "summary": "DELETE 转发第三方完整 URL",
+        "description": "使用 X-API-Token 调用。APP TOKEN 是普通应用令牌，不要加 Bearer。",
+        "security": [
+          {
+            "ApiTokenAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "第三方完整 URL，包含 https://、域名、路径和查询参数。",
+            "name": "url",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "转发成功",
+            "schema": {
+              "$ref": "#/definitions/Response"
+            }
+          },
+          "401": {
+            "description": "APP TOKEN 缺失、错误或无应用权限",
+            "schema": {
+              "$ref": "#/definitions/Response"
+            }
+          },
+          "500": {
+            "description": "第三方接口返回异常或 ESB 转发失败",
+            "schema": {
+              "$ref": "#/definitions/Response"
+            }
+          }
+        }
+      }
     }
+  },
+  "securityDefinitions": {
+    "ApiTokenAuth": {
+      "type": "apiKey",
+      "name": "X-API-Token",
+      "in": "header",
+      "description": "ESB APP TOKEN，直接填写 token 原值，不要加 Bearer。"
+    },
+    "UserBearerAuth": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "用户登录 token，格式：Bearer <user-token>。"
+    }
+  },
+  "definitions": {
+    "LoginRequest": {
+      "type": "object",
+      "required": [
+        "username",
+        "password"
+      ],
+      "properties": {
+        "username": {
+          "type": "string",
+          "example": "admin"
+        },
+        "password": {
+          "type": "string",
+          "example": "admin123"
+        }
+      }
+    },
+    "LoginResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "example": 200
+        },
+        "msg": {
+          "type": "string",
+          "example": "ok"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "token": {
+              "type": "string"
+            },
+            "token_type": {
+              "type": "string",
+              "example": "Bearer"
+            },
+            "expires_in": {
+              "type": "integer",
+              "example": 7200
+            },
+            "username": {
+              "type": "string",
+              "example": "admin"
+            }
+          }
+        }
+      }
+    },
+    "ProxyBody": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "Response": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "example": 200
+        },
+        "msg": {
+          "type": "string",
+          "example": "ok"
+        },
+        "data": {}
+      }
+    }
+  }
 }

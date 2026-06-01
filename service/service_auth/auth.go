@@ -28,6 +28,7 @@ type Principal struct {
 	Type     string
 	Username string
 	Token    string
+	Apps     []string
 }
 
 func Login(username, password string) (*LoginResponse, error) {
@@ -60,12 +61,19 @@ func Login(username, password string) (*LoginResponse, error) {
 }
 
 func Authenticate(token string) (*Principal, error) {
+	return AuthenticateForApp(token, "")
+}
+
+func AuthenticateForApp(token, appName string) (*Principal, error) {
 	token = strings.TrimSpace(token)
 	if token == "" {
 		return nil, errors.New("empty token")
 	}
-	if isAppToken(token) {
-		return &Principal{Type: "app", Token: token}, nil
+	if apps, ok := appTokenApps(token); ok {
+		if appName != "" && !allowApp(apps, appName) {
+			return nil, errors.New("token is not allowed to access openapi app")
+		}
+		return &Principal{Type: "app", Token: token, Apps: apps}, nil
 	}
 	if util.Rdb == nil {
 		return nil, errors.New("redis is not initialized")
@@ -83,7 +91,10 @@ func Authenticate(token string) (*Principal, error) {
 
 func Logout(token string) error {
 	token = strings.TrimSpace(token)
-	if token == "" || isAppToken(token) {
+	if token == "" {
+		return nil
+	}
+	if _, ok := appTokenApps(token); ok {
 		return nil
 	}
 	if util.Rdb == nil {
@@ -92,13 +103,49 @@ func Logout(token string) error {
 	return util.Rdb.Del(context.Background(), userTokenKey(token)).Err()
 }
 
-func isAppToken(token string) bool {
+func appTokenApps(token string) ([]string, bool) {
 	for _, configured := range strings.Split(setting.ServiceAuthSetting.ApiTokens, ",") {
 		configured = strings.TrimSpace(configured)
 		if configured == "" {
 			continue
 		}
-		if matchSecret(token, configured) {
+		configuredToken, apps := parseAppToken(configured)
+		if matchSecret(token, configuredToken) {
+			return apps, true
+		}
+	}
+	return nil, false
+}
+
+func parseAppToken(configured string) (string, []string) {
+	if parts := strings.SplitN(configured, "=", 2); len(parts) == 2 {
+		return strings.TrimSpace(parts[1]), splitApps(parts[0])
+	}
+	if parts := strings.SplitN(configured, ":", 2); len(parts) == 2 {
+		return strings.TrimSpace(parts[0]), splitApps(parts[1])
+	}
+	return configured, []string{"*"}
+}
+
+func splitApps(apps string) []string {
+	var out []string
+	for _, app := range strings.FieldsFunc(apps, func(r rune) bool {
+		return r == '|' || r == ';' || r == ','
+	}) {
+		app = strings.TrimSpace(app)
+		if app != "" {
+			out = append(out, app)
+		}
+	}
+	if len(out) == 0 {
+		return []string{"*"}
+	}
+	return out
+}
+
+func allowApp(apps []string, appName string) bool {
+	for _, app := range apps {
+		if app == "*" || strings.EqualFold(app, appName) {
 			return true
 		}
 	}

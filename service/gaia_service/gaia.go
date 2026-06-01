@@ -1,6 +1,7 @@
 package gaia_service
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,12 +14,11 @@ import (
 	"github.com/EDDYCJY/go-gin-example/pkg/logging"
 	"github.com/EDDYCJY/go-gin-example/pkg/setting"
 	"github.com/EDDYCJY/go-gin-example/pkg/util"
+	"github.com/go-redis/redis/v8"
 )
 
 var (
-	tokenLock   sync.RWMutex
-	cachedToken string
-	tokenExpire time.Time
+	tokenLock sync.Mutex
 )
 
 type Client struct{}
@@ -67,19 +67,15 @@ func resolvePath(path string) string {
 }
 
 func (c *Client) authToken() (string, error) {
-	tokenLock.RLock()
-	if cachedToken != "" && time.Now().Before(tokenExpire) {
-		t := cachedToken
-		tokenLock.RUnlock()
-		return t, nil
-	}
-	tokenLock.RUnlock()
-
 	tokenLock.Lock()
 	defer tokenLock.Unlock()
-	if cachedToken != "" && time.Now().Before(tokenExpire) {
-		return cachedToken, nil
+	if util.Rdb == nil {
+		return "", errors.New("redis is not initialized")
 	}
+	if token, ok := redisAuthToken(); ok {
+		return token, nil
+	}
+
 	values := url.Values{}
 	grantType := strings.TrimSpace(setting.GaiaApiSetting.GrantType)
 	if grantType == "" {
@@ -104,9 +100,48 @@ func (c *Client) authToken() (string, error) {
 	if !resp.Result || resp.Data == "" {
 		return "", fmt.Errorf("gaia auth failed: %s", resp.Message)
 	}
-	cachedToken = resp.Data
-	tokenExpire = time.Now().Add(setting.GaiaApiSetting.TokenTTL - time.Minute)
-	return cachedToken, nil
+	if err := cacheAuthToken(resp.Data, normalizedTokenTTL()); err != nil {
+		return "", err
+	}
+	return resp.Data, nil
+}
+
+func redisAuthToken() (string, bool) {
+	if util.Rdb == nil {
+		return "", false
+	}
+	token, err := util.Rdb.Get(context.Background(), gaiaTokenKey()).Result()
+	if err == redis.Nil {
+		return "", false
+	}
+	if err != nil {
+		logging.Errorf("gaia token redis get key=%s err=%s", gaiaTokenKey(), err.Error())
+		return "", false
+	}
+	return token, token != ""
+}
+
+func cacheAuthToken(token string, ttl time.Duration) error {
+	if util.Rdb == nil {
+		return errors.New("redis is not initialized")
+	}
+	if err := util.Rdb.Set(context.Background(), gaiaTokenKey(), token, ttl).Err(); err != nil {
+		logging.Errorf("gaia token redis set key=%s err=%s", gaiaTokenKey(), err.Error())
+		return err
+	}
+	return nil
+}
+
+func normalizedTokenTTL() time.Duration {
+	ttl := setting.GaiaApiSetting.TokenTTL
+	if ttl <= 0 {
+		return 2 * time.Hour
+	}
+	return ttl
+}
+
+func gaiaTokenKey() string {
+	return "esb:openapi:token:gaiastandard"
 }
 
 func normalizeResponse(out map[string]interface{}) (interface{}, error) {

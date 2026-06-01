@@ -8,7 +8,6 @@ import (
 	serviceauth "github.com/EDDYCJY/go-gin-example/middleware/service_auth"
 	"github.com/EDDYCJY/go-gin-example/pkg/setting"
 	"github.com/EDDYCJY/go-gin-example/routers/api"
-	v1 "github.com/EDDYCJY/go-gin-example/routers/api/v1"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
@@ -53,15 +52,13 @@ func InitRouter() *gin.Engine {
 		authRouter.POST("/logout", serviceauth.Check(), api.Logout)
 	}
 
-	gaia := r.Group("/api/gaia/v1")
-	gaia.Use(http_log.LogMiddleware(), serviceauth.Check())
+	esb := r.Group("/api/esb/v1")
+	esb.Use(http_log.LogMiddleware(), serviceauth.CheckOpenAPIURL())
 	{
-		gaia.POST("/leave/submit", v1.LeaveSubmit)
-		gaia.GET("/leave/my-applications", v1.MyApplications)
-		gaia.POST("/leave/quota", v1.LeaveQuota)
-		gaia.GET("/leave/types", v1.LeaveTypes)
-		gaia.POST("/leave/hours", v1.LeaveHours)
-		gaia.GET("/leave/exceptions", v1.ExceptionList)
+		esb.GET("/*url", api.ProxyOpenAPI)
+		esb.POST("/*url", api.ProxyOpenAPI)
+		esb.PUT("/*url", api.ProxyOpenAPI)
+		esb.DELETE("/*url", api.ProxyOpenAPI)
 	}
 	return r
 }
