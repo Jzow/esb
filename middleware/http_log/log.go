@@ -3,9 +3,11 @@ package http_log
 import (
 	"bytes"
 	"context"
+	"io"
+	"net/http"
+
 	"github.com/EDDYCJY/go-gin-example/pkg/util"
 	"github.com/gin-gonic/gin"
-	"io"
 )
 
 type responseWriter struct {
@@ -24,7 +26,7 @@ func LogMiddleware() gin.HandlerFunc {
 		util.Log("Request URI: %v %v", ctx, c.Request.Method, c.Request.RequestURI)
 		userId, _ := c.Get("user_id")
 		util.Log("Request user_id: %v", ctx, userId)
-		util.Log("Request Header: %v", ctx, c.Request.Header)
+		util.Log("Request Header: %v", ctx, maskedHeader(c.Request.Header))
 		ticket, _ := c.Cookie("ticket")
 		if ticket != "" {
 			util.Log("Request Cookie ticket: %v", ctx, ticket)
@@ -36,7 +38,7 @@ func LogMiddleware() gin.HandlerFunc {
 			util.Log("Request PostForm: %v", ctx, c.Request.PostForm)
 		}
 		body, err := io.ReadAll(c.Request.Body)
-		util.Log("Request Body: %v", ctx, body, err)
+		util.Log("Request Body: %v", ctx, requestBodyForLog(c, body), err)
 
 		if err == nil {
 			c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
@@ -49,6 +51,30 @@ func LogMiddleware() gin.HandlerFunc {
 		c.Next()
 
 		// 打印响应参数
-		util.Log("Response Status=%v,Body: %v", ctx, c.Writer.Status(), wrapped.body.String())
+		util.Log("Response Status=%v,Body: %v", ctx, c.Writer.Status(), responseBodyForLog(c, wrapped.body.String()))
 	}
+}
+
+func maskedHeader(header http.Header) http.Header {
+	cloned := header.Clone()
+	for _, key := range []string{"Authorization", "Cookie", "X-API-Token"} {
+		if cloned.Get(key) != "" {
+			cloned.Set(key, "***")
+		}
+	}
+	return cloned
+}
+
+func requestBodyForLog(c *gin.Context, body []byte) any {
+	if c.FullPath() == "/api/auth/login" {
+		return "***"
+	}
+	return body
+}
+
+func responseBodyForLog(c *gin.Context, body string) string {
+	if c.FullPath() == "/api/auth/login" {
+		return "***"
+	}
+	return body
 }

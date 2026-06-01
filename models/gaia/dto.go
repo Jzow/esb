@@ -62,23 +62,56 @@ type MyApplicationsRequest struct {
 }
 
 type LeaveQuotaRequest struct {
-	Size             int    `json:"size"`
-	EndDate          string `json:"endDate"`
-	UnitCode         string `json:"unitCode"`
-	EmployeeID       string `json:"employeeId"`
-	Page             int    `json:"page"`
-	IsIncludeSubUnit bool   `json:"isIncludeSubUnit"`
-	StartDate        string `json:"startDate"`
+	Size             *int   `json:"size,omitempty"`
+	EndDate          string `json:"endDate,omitempty"`
+	UnitCode         string `json:"unitCode,omitempty"`
+	EmployeeID       string `json:"employeeId,omitempty"`
+	Page             *int   `json:"page,omitempty"`
+	IsIncludeSubUnit *bool  `json:"isIncludeSubUnit,omitempty"`
+	StartDate        string `json:"startDate,omitempty"`
 }
 
 type LeaveTypesRequest struct {
-	EmployeeID      string `form:"employeeId" json:"employeeId"`
+	EmploeeID       string `form:"emploeeId" json:"emploeeId"`
+	EmployeeID      string `form:"employeeId" json:"-"`
 	Date            string `form:"date" json:"date"`
 	BatchApplyLeave string `form:"batchApplyLeave" json:"batchApplyLeave"`
 }
 
 type LeaveHoursRequest struct {
-	Data map[string]interface{} `json:"data"`
+	PacketID                string                 `json:"packetId,omitempty"`
+	IsEndDateManualChange   *bool                  `json:"isEndDateManualChange,omitempty"`
+	EndDateLeaveModel       *int                   `json:"endDateLeaveModel,omitempty"`
+	EndDate                 string                 `json:"endDate,omitempty"`
+	LeaveModel              *int                   `json:"leaveModel,omitempty"`
+	ReplaceForm             string                 `json:"replaceForm,omitempty"`
+	StartDTM                string                 `json:"startdtm,omitempty"`
+	AdvanceNum              string                 `json:"advanceNum,omitempty"`
+	BreastfeedingLeaveModel string                 `json:"breastfeedingLeaveModel,omitempty"`
+	AttendanceParentLabel   string                 `json:"attendanceParentLabel,omitempty"`
+	IsShowTotalHours        *bool                  `json:"isShowTotalHours,omitempty"`
+	Times                   *int                   `json:"times,omitempty"`
+	EndModel                string                 `json:"endModel,omitempty"`
+	Repeat                  *int                   `json:"repeat,omitempty"`
+	StartTime               string                 `json:"startTime,omitempty"`
+	StartModel              string                 `json:"startModel,omitempty"`
+	AutoCalc                *bool                  `json:"autoCalc,omitempty"`
+	RepeatEndDate           string                 `json:"repeatEndDate,omitempty"`
+	IsReplaceClass          *int                   `json:"isReplaceClass,omitempty"`
+	DelayNum                string                 `json:"delayNum,omitempty"`
+	EndDTM                  string                 `json:"enddtm,omitempty"`
+	ExtendedField           string                 `json:"extendedField,omitempty"`
+	LeaveReason             string                 `json:"leaveReason,omitempty"`
+	StartDateLeaveModel     *int                   `json:"startDateLeaveModel,omitempty"`
+	PersonIDs               []string               `json:"personIds,omitempty"`
+	PersonID                string                 `json:"personId,omitempty"`
+	Detail                  string                 `json:"detail,omitempty"`
+	EndTime                 string                 `json:"endTime,omitempty"`
+	IsDateManualChange      *bool                  `json:"isDateManualChange,omitempty"`
+	PayCode                 string                 `json:"payCode,omitempty"`
+	ClassType               string                 `json:"classType,omitempty"`
+	StartDate               string                 `json:"startDate,omitempty"`
+	Extra                   map[string]interface{} `json:"-"`
 }
 
 type ExceptionListRequest struct {

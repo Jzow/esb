@@ -1,5 +1,13 @@
 #ESB
 
+## Service Authentication
+
+See `docs/auth.md`.
+
+## Gaia Proxy APIs
+
+See `docs/gaia.md`.
+
 ## Gaia OpenAPI（流程）对接配置
 
 在 `conf/app.ini` 中新增配置段：

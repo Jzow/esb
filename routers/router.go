@@ -5,7 +5,9 @@ import (
 
 	"github.com/EDDYCJY/go-gin-example/middleware/auth"
 	"github.com/EDDYCJY/go-gin-example/middleware/http_log"
+	serviceauth "github.com/EDDYCJY/go-gin-example/middleware/service_auth"
 	"github.com/EDDYCJY/go-gin-example/pkg/setting"
+	"github.com/EDDYCJY/go-gin-example/routers/api"
 	v1 "github.com/EDDYCJY/go-gin-example/routers/api/v1"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -44,8 +46,15 @@ func InitRouter() *gin.Engine {
 				apiv1.DELETE("/test/:id", v1.DeleteTest)*/
 	}
 
+	authRouter := r.Group("/api/auth")
+	authRouter.Use(http_log.LogMiddleware())
+	{
+		authRouter.POST("/login", api.Login)
+		authRouter.POST("/logout", serviceauth.Check(), api.Logout)
+	}
+
 	gaia := r.Group("/api/gaia/v1")
-	gaia.Use(http_log.LogMiddleware())
+	gaia.Use(http_log.LogMiddleware(), serviceauth.Check())
 	{
 		gaia.POST("/leave/submit", v1.LeaveSubmit)
 		gaia.GET("/leave/my-applications", v1.MyApplications)

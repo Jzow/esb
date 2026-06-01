@@ -2,6 +2,7 @@ package gaia_service
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -39,12 +40,13 @@ func gaiaCommonHeaders() map[string]string {
 func authHeaderValue(token string) string {
 	prefix := strings.TrimSpace(setting.GaiaApiSetting.TokenPrefix)
 	if prefix == "" {
-		return token
+		prefix = "Bearer"
 	}
 	return prefix + " " + token
 }
 
 func buildURL(path string) string {
+	path = resolvePath(path)
 	if strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://") {
 		return path
 	}
@@ -56,6 +58,12 @@ func buildURL(path string) string {
 		return base + path
 	}
 	return base + "/" + path
+}
+
+func resolvePath(path string) string {
+	tenant := strings.TrimSpace(setting.GaiaApiSetting.CorpID)
+	path = strings.ReplaceAll(path, "{tenant}", url.PathEscape(tenant))
+	return path
 }
 
 func (c *Client) authToken() (string, error) {
@@ -90,6 +98,7 @@ func (c *Client) authToken() (string, error) {
 	headers["Content-Type"] = "application/x-www-form-urlencoded"
 	_, err := util.Post(buildURL(authURL), values.Encode(), &resp, headers)
 	if err != nil {
+		logging.Errorf("gaia auth url=%s err=%s", buildURL(authURL), err.Error())
 		return "", err
 	}
 	if !resp.Result || resp.Data == "" {
@@ -100,7 +109,49 @@ func (c *Client) authToken() (string, error) {
 	return cachedToken, nil
 }
 
-func (c *Client) post(path string, req interface{}) (map[string]interface{}, error) {
+func normalizeResponse(out map[string]interface{}) (interface{}, error) {
+	if code, ok := numericCode(out["code"]); ok && code != 200 {
+		return nil, fmt.Errorf("gaia api failed: code=%d, message=%s, reason=%s", code, stringValue(out["message"]), stringValue(out["reason"]))
+	}
+	if result, ok := out["result"].(bool); ok && !result {
+		return nil, fmt.Errorf("gaia api failed: result=false, message=%s, reason=%s", stringValue(out["message"]), stringValue(out["reason"]))
+	}
+	if details, ok := out["details"]; ok {
+		return details, nil
+	}
+	if data, ok := out["data"]; ok {
+		return data, nil
+	}
+	return out, nil
+}
+
+func numericCode(v interface{}) (int, bool) {
+	switch code := v.(type) {
+	case int:
+		return code, true
+	case int64:
+		return int(code), true
+	case float64:
+		return int(code), true
+	case json.Number:
+		n, err := code.Int64()
+		return int(n), err == nil
+	default:
+		return 0, false
+	}
+}
+
+func stringValue(v interface{}) string {
+	if v == nil {
+		return ""
+	}
+	return fmt.Sprintf("%v", v)
+}
+
+func (c *Client) post(path string, req interface{}) (interface{}, error) {
+	if strings.TrimSpace(path) == "" || strings.Contains(path, "<") {
+		return nil, errors.New("empty or invalid gaia api path")
+	}
 	tk, err := c.authToken()
 	if err != nil {
 		return nil, err
@@ -113,13 +164,16 @@ func (c *Client) post(path string, req interface{}) (map[string]interface{}, err
 		logging.Errorf("gaia post path=%s err=%s", path, err.Error())
 		return nil, err
 	}
-	return out, nil
+	return normalizeResponse(out)
 }
-func (c *Client) Post(path string, req interface{}) (map[string]interface{}, error) {
+func (c *Client) Post(path string, req interface{}) (interface{}, error) {
 	return c.post(path, req)
 }
 
-func (c *Client) get(path string, query interface{}) (map[string]interface{}, error) {
+func (c *Client) get(path string, query interface{}) (interface{}, error) {
+	if strings.TrimSpace(path) == "" || strings.Contains(path, "<") {
+		return nil, errors.New("empty or invalid gaia api path")
+	}
 	tk, err := c.authToken()
 	if err != nil {
 		return nil, err
@@ -141,17 +195,21 @@ func (c *Client) get(path string, query interface{}) (map[string]interface{}, er
 	headers := gaiaCommonHeaders()
 	headers["Authorization"] = authHeaderValue(tk)
 	_, err = util.Get(api, &out, headers)
-	return out, err
+	if err != nil {
+		logging.Errorf("gaia get url=%s err=%s", api, err.Error())
+		return nil, err
+	}
+	return normalizeResponse(out)
 }
-func (c *Client) Get(path string, query interface{}) (map[string]interface{}, error) {
+func (c *Client) Get(path string, query interface{}) (interface{}, error) {
 	return c.get(path, query)
 }
 
-func (c *Client) PostLeaveSubmit(req gaia.LeaveSubmitRequest) (map[string]interface{}, error) {
+func (c *Client) PostLeaveSubmit(req gaia.LeaveSubmitRequest) (interface{}, error) {
 	return c.post(setting.GaiaApiSetting.LeaveSubmitPath, req)
 }
 
 // LeaveSubmit keeps compatibility with older call sites.
-func (c *Client) LeaveSubmit(req gaia.LeaveSubmitRequest) (map[string]interface{}, error) {
+func (c *Client) LeaveSubmit(req gaia.LeaveSubmitRequest) (interface{}, error) {
 	return c.PostLeaveSubmit(req)
 }

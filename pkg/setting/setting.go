@@ -69,6 +69,15 @@ var GaiaOpenAPISetting = GaiaApiSetting
 
 var AppSetting = &App{}
 
+type ServiceAuth struct {
+	Username        string
+	Password        string
+	ApiTokens       string
+	TokenTTLSeconds int
+}
+
+var ServiceAuthSetting = &ServiceAuth{}
+
 type Server struct {
 	RunMode      string
 	HttpPort     int
@@ -140,6 +149,7 @@ func Setup() {
 	mapTo("database", DatabaseSetting)
 	mapTo("redis", RedisSetting)
 	mapTo("elastic", CommonEsSetting)
+	mapTo("service_auth", ServiceAuthSetting)
 
 	mapTo("kafka", KafkaCommonSetting)
 	mapTo("kafka_ticket_canal", TicketCanalKafkaSetting)
@@ -158,8 +168,17 @@ func Setup() {
 		GaiaApiSetting.AuthPath = GaiaApiSetting.AuthURL
 	}
 
+	if GaiaApiSetting.BaseUrl == "" {
+		GaiaApiSetting.BaseUrl = cfg.Section("gaia-openapi").Key("BaseURL").String()
+	}
 	if GaiaApiSetting.BaseUrl == "" && GaiaApiSetting.AuthURL != "" {
 		GaiaApiSetting.BaseUrl = GaiaApiSetting.AuthURL
+	}
+	if GaiaApiSetting.TokenPrefix == "" {
+		GaiaApiSetting.TokenPrefix = "Bearer"
+	}
+	if ServiceAuthSetting.TokenTTLSeconds <= 0 {
+		ServiceAuthSetting.TokenTTLSeconds = 7200
 	}
 
 	AppSetting.ImageMaxSize = AppSetting.ImageMaxSize * 1024 * 1024

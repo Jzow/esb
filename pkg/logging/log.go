@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/EDDYCJY/go-gin-example/pkg/file"
 	"github.com/EDDYCJY/go-gin-example/pkg/setting"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -46,7 +47,7 @@ func Setup() {
 		log.Fatalf("logging.Setup err: %v", err)
 	}
 
-	logger = log.New(F, DefaultPrefix, log.LstdFlags|log.Lmicroseconds)
+	logger = log.New(io.MultiWriter(os.Stdout, F), DefaultPrefix, log.LstdFlags|log.Lmicroseconds)
 	scrollDate = time.Now().Format(setting.AppSetting.TimeFormat)
 }
 

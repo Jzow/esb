@@ -46,11 +46,25 @@ func LeaveQuota(c *gin.Context) {
 	appG.Response(http.StatusOK, e.SUCCESS, resp)
 }
 func LeaveTypes(c *gin.Context) {
-	commonGet(c, setting.GaiaApiSetting.LeaveTypesPath, &gaia.LeaveTypesRequest{})
+	appG := app.Gin{C: c}
+	req := &gaia.LeaveTypesRequest{}
+	if err := c.ShouldBindQuery(req); err != nil {
+		appG.Response(http.StatusBadRequest, e.INVALID_PARAMS, nil, err.Error())
+		return
+	}
+	if req.EmploeeID == "" {
+		req.EmploeeID = req.EmployeeID
+	}
+	resp, err := gaiaClient.Get(setting.GaiaApiSetting.LeaveTypesPath, req)
+	if err != nil {
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil, err.Error())
+		return
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, resp)
 }
 func LeaveHours(c *gin.Context) {
 	appG := app.Gin{C: c}
-	var req map[string]interface{}
+	var req gaia.LeaveHoursRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		appG.Response(http.StatusBadRequest, e.INVALID_PARAMS, nil, err.Error())
 		return

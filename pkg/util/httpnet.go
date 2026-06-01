@@ -98,20 +98,23 @@ func Request(method, url string, body interface{}, model interface{}, headers ma
 		reader = bytes.NewReader(body.([]byte))
 		break
 	}
-	switch reflect.ValueOf(body).Kind() {
-	case reflect.Ptr, reflect.Struct, reflect.Slice, reflect.Array, reflect.Map:
-		bodyBytes, err := json.Marshal(body)
-		if err != nil {
-			return nil, errors.New(fmt.Sprintf("json.Marshal request error,%s", err.Error()))
+	if body != nil {
+		switch reflect.ValueOf(body).Kind() {
+		case reflect.Ptr, reflect.Struct, reflect.Slice, reflect.Array, reflect.Map:
+			bodyBytes, err := json.Marshal(body)
+			if err != nil {
+				return nil, errors.New(fmt.Sprintf("json.Marshal request error,%s", err.Error()))
+			}
+			reader = bytes.NewReader(bodyBytes)
 		}
-		reader = bytes.NewReader(bodyBytes)
 	}
 
 	req, err := http.NewRequest(method, url, reader)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("NewRequest method error,%s", err.Error()))
 	}
-	req.Header.Add("Content-Type", "application/json")
+	req.Header.Set("Accept", "*/*")
+	req.Header.Set("Content-Type", "application/json")
 
 	//set headers
 	if headers != nil {
